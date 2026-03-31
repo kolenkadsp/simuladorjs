@@ -1,0 +1,15 @@
+/* Badge estados */
+.badge-electo   { background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+.badge-paridad  { background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+.badge-sorteo   { background: #e0e7ff; color: #3730a3; padding: 2px 8px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+
+/* Tabla D'Hondt — celda ganadora */
+.dhondt-winner { background: #fee2e2; font-weight: bold; }
+
+/* Tab activo */
+.tab-active { border-bottom: 2px solid #b91c1c; color: #b91c1c; font-weight: 700; }
+
+/* Banner de aviso */
+.banner-warn { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 6px; padding: 8px 12px; font-size: 0.875rem; color: #92400e; margin-bottom: 12px; }
+.banner-ok   { background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px; padding: 8px 12px; font-size: 0.875rem; color: #166534; margin-bottom: 12px; }
+.banner-err  { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px; padding: 8px 12px; font-size: 0.875rem; color: #991b1b; margin-bottom: 12px; }

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador Elecciones JS 2026</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-red-700 text-white p-4 shadow">
+    <h1 class="text-2xl font-bold">Simulador Elecciones JS 2026</h1>
+    <p class="text-sm opacity-80">Juventud Socialista de Chile</p>
+  </header>
+
+  <!-- Tabs -->
+  <div class="max-w-6xl mx-auto mt-6 px-4">
+    <div class="flex border-b border-gray-300 mb-6">
+      <button id="tab-ccn" class="tab-btn px-6 py-3 font-semibold border-b-2 border-red-600 text-red-700">
+        Comité Central Nacional <span class="text-xs font-normal">(11 cupos)</span>
+      </button>
+      <button id="tab-ccr" class="tab-btn px-6 py-3 font-semibold text-gray-500 hover:text-gray-700">
+        Comité Central Regional <span class="text-xs font-normal">(30 cupos)</span>
+      </button>
+    </div>
+
+    <!-- CCN Panel -->
+    <div id="panel-ccn">
+      <!-- Bloque 1: Pactos -->
+      <section id="ccn-pactos" class="mb-6 bg-white rounded-lg shadow p-4">
+        <h2 class="font-bold text-lg mb-3">Pactos / Listas</h2>
+        <div id="ccn-pactos-list" class="flex flex-wrap gap-2 mb-3"></div>
+        <div class="flex gap-2">
+          <input id="ccn-new-pacto" type="text" placeholder="Nombre del pacto"
+            class="border rounded px-3 py-1 text-sm flex-1">
+          <button id="ccn-add-pacto" class="bg-red-600 text-white px-4 py-1 rounded text-sm hover:bg-red-700">
+            + Agregar Pacto
+          </button>
+        </div>
+      </section>
+
+      <!-- Bloque 2: Candidatos -->
+      <section id="ccn-candidatos" class="mb-6 bg-white rounded-lg shadow p-4">
+        <h2 class="font-bold text-lg mb-3">Candidatos</h2>
+        <div class="grid grid-cols-5 gap-2 mb-2 text-xs font-semibold text-gray-500 uppercase">
+          <span class="col-span-2">Nombre</span><span>Pacto</span><span>Votos</span><span>Sexo</span>
+        </div>
+        <div id="ccn-candidatos-list" class="space-y-1 mb-3"></div>
+        <!-- Formulario agregar -->
+        <div class="grid grid-cols-5 gap-2 items-center">
+          <input id="ccn-nombre" type="text" placeholder="Nombre"
+            class="col-span-2 border rounded px-2 py-1 text-sm">
+          <select id="ccn-pacto-sel" class="border rounded px-2 py-1 text-sm">
+            <option value="">-- Pacto --</option>
+          </select>
+          <input id="ccn-votos" type="number" min="0" placeholder="Votos"
+            class="border rounded px-2 py-1 text-sm">
+          <select id="ccn-sexo" class="border rounded px-2 py-1 text-sm">
+            <option value="">Sexo</option>
+            <option value="H">Hombre</option>
+            <option value="M">Mujer</option>
+          </select>
+        </div>
+        <button id="ccn-add-candidato"
+          class="mt-2 bg-gray-700 text-white px-4 py-1 rounded text-sm hover:bg-gray-800">
+          + Agregar Candidato
+        </button>
+      </section>
+
+      <!-- Bloque 3: Resultados CCN -->
+      <section id="ccn-resultados" class="mb-6">
+        <button id="ccn-calcular"
+          class="bg-red-700 text-white px-6 py-2 rounded font-semibold hover:bg-red-800 mb-4">
+          Calcular
+        </button>
+        <div id="ccn-resultado-output" class="hidden"></div>
+      </section>
+    </div>
+
+    <!-- CCR Panel (hidden by default) -->
+    <div id="panel-ccr" class="hidden">
+      <!-- Selector de región -->
+      <div class="mb-4">
+        <label class="font-semibold mr-2">Región:</label>
+        <select id="ccr-region-sel" class="border rounded px-3 py-2 text-sm">
+        </select>
+        <span id="ccr-cupos-badge" class="ml-2 text-sm text-gray-500"></span>
+      </div>
+
+      <!-- Bloque 1: Pactos CCR -->
+      <section id="ccr-pactos" class="mb-6 bg-white rounded-lg shadow p-4">
+        <h2 class="font-bold text-lg mb-3">Pactos / Listas</h2>
+        <div id="ccr-pactos-list" class="flex flex-wrap gap-2 mb-3"></div>
+        <div class="flex gap-2">
+          <input id="ccr-new-pacto" type="text" placeholder="Nombre del pacto"
+            class="border rounded px-3 py-1 text-sm flex-1">
+          <button id="ccr-add-pacto" class="bg-red-600 text-white px-4 py-1 rounded text-sm hover:bg-red-700">
+            + Agregar Pacto
+          </button>
+        </div>
+      </section>
+
+      <!-- Bloque 2: Candidatos CCR -->
+      <section id="ccr-candidatos" class="mb-6 bg-white rounded-lg shadow p-4">
+        <h2 class="font-bold text-lg mb-3">Candidatos</h2>
+        <div class="grid grid-cols-5 gap-2 mb-2 text-xs font-semibold text-gray-500 uppercase">
+          <span class="col-span-2">Nombre</span><span>Pacto</span><span>Votos</span><span>Sexo</span>
+        </div>
+        <div id="ccr-candidatos-list" class="space-y-1 mb-3"></div>
+        <div class="grid grid-cols-5 gap-2 items-center">
+          <input id="ccr-nombre" type="text" placeholder="Nombre"
+            class="col-span-2 border rounded px-2 py-1 text-sm">
+          <select id="ccr-pacto-sel" class="border rounded px-2 py-1 text-sm">
+            <option value="">-- Pacto --</option>
+          </select>
+          <input id="ccr-votos" type="number" min="0" placeholder="Votos"
+            class="border rounded px-2 py-1 text-sm">
+          <select id="ccr-sexo" class="border rounded px-2 py-1 text-sm">
+            <option value="">Sexo</option>
+            <option value="H">Hombre</option>
+            <option value="M">Mujer</option>
+          </select>
+        </div>
+        <button id="ccr-add-candidato"
+          class="mt-2 bg-gray-700 text-white px-4 py-1 rounded text-sm hover:bg-gray-800">
+          + Agregar Candidato
+        </button>
+      </section>
+
+      <!-- Bloque 3: Resultados CCR -->
+      <section id="ccr-resultados" class="mb-6">
+        <div class="flex gap-3 mb-4">
+          <button id="ccr-calcular"
+            class="bg-red-700 text-white px-6 py-2 rounded font-semibold hover:bg-red-800">
+            Calcular esta región
+          </button>
+          <button id="ccr-calcular-todas"
+            class="bg-gray-600 text-white px-6 py-2 rounded font-semibold hover:bg-gray-700">
+            Ver resumen nacional CCR
+          </button>
+        </div>
+        <div id="ccr-resultado-output" class="hidden"></div>
+      </section>
+    </div>
+
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

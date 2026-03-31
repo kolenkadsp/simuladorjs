@@ -48,7 +48,6 @@
           <span class="col-span-2">Nombre</span><span>Pacto</span><span>Votos</span><span>Sexo</span>
         </div>
         <div id="ccn-candidatos-list" class="space-y-1 mb-3"></div>
-        <!-- Formulario agregar -->
         <div class="grid grid-cols-5 gap-2 items-center">
           <input id="ccn-nombre" type="text" placeholder="Nombre"
             class="col-span-2 border rounded px-2 py-1 text-sm">
@@ -81,11 +80,9 @@
 
     <!-- CCR Panel (hidden by default) -->
     <div id="panel-ccr" class="hidden">
-      <!-- Selector de región -->
       <div class="mb-4">
         <label class="font-semibold mr-2">Región:</label>
-        <select id="ccr-region-sel" class="border rounded px-3 py-2 text-sm">
-        </select>
+        <select id="ccr-region-sel" class="border rounded px-3 py-2 text-sm"></select>
         <span id="ccr-cupos-badge" class="ml-2 text-sm text-gray-500"></span>
       </div>
 
@@ -147,6 +144,729 @@
 
   </div>
 
-  <script type="module" src="js/app.js"></script>
+<script>
+// ── data.js ──────────────────────────────────────────────────────────────────
+const REGIONES = [
+  { id: 'arica',       nombre: 'De Arica',                        cupos: 1, padron: 138  },
+  { id: 'tarapaca',    nombre: 'De Tarapacá',                     cupos: 1, padron: 144  },
+  { id: 'antofagasta', nombre: 'De Antofagasta',                  cupos: 2, padron: 233  },
+  { id: 'atacama',     nombre: 'De Atacama',                      cupos: 2, padron: 313  },
+  { id: 'coquimbo',    nombre: 'De Coquimbo',                     cupos: 1, padron: 128  },
+  { id: 'valparaiso',  nombre: 'De Valparaíso',                   cupos: 2, padron: 293  },
+  { id: 'rm',          nombre: 'Metropolitana de Santiago',        cupos: 7, padron: 2212 },
+  { id: 'ohiggins',    nombre: "Del Libertador B. O'Higgins",     cupos: 2, padron: 163  },
+  { id: 'maule',       nombre: 'Del Maule',                       cupos: 2, padron: 179  },
+  { id: 'nuble',       nombre: 'De Ñuble',                        cupos: 1, padron: 154  },
+  { id: 'biobio',      nombre: 'Del BioBío',                      cupos: 2, padron: 266  },
+  { id: 'araucania',   nombre: 'De La Araucanía',                 cupos: 2, padron: 196  },
+  { id: 'losrios',     nombre: 'De Los Ríos',                     cupos: 1, padron: 118  },
+  { id: 'loslagos',    nombre: 'De Los Lagos',                    cupos: 2, padron: 278  },
+  { id: 'aysen',       nombre: 'De Aysén',                        cupos: 1, padron: 29   },
+  { id: 'magallanes',  nombre: 'De Magallanes',                   cupos: 1, padron: 62   },
+];
+
+const CCN_CUPOS = 11;
+
+function emptyContext() {
+  return { pactos: [], candidatos: [] };
+}
+
+const state = {
+  ccn: emptyContext(),
+  ccr: Object.fromEntries(REGIONES.map(r => [r.id, emptyContext()])),
+  ccrRegionActiva: REGIONES[0].id,
+};
+
+function getContext(tipo, regionId) {
+  if (tipo === 'ccn') return state.ccn;
+  return state.ccr[regionId != null ? regionId : state.ccrRegionActiva];
+}
+
+let nextId = 1;
+function newId() { return nextId++; }
+
+// ── dhondt.js ─────────────────────────────────────────────────────────────────
+function runDhondt(candidatos, pactos, N) {
+  const advertencias = [];
+
+  const votosPorPacto = {};
+  for (const p of pactos) votosPorPacto[p] = 0;
+  for (const c of candidatos) {
+    if (votosPorPacto[c.pacto] !== undefined) votosPorPacto[c.pacto] += c.votos;
+  }
+
+  const totalVotos = Object.values(votosPorPacto).reduce((a, b) => a + b, 0);
+  if (totalVotos === 0) {
+    return {
+      electos: [], noElectos: candidatos.map(c => ({...c, estado:'no_electo'})),
+      cuposPorPacto: Object.fromEntries(pactos.map(p => [p, 0])),
+      cifraRepartidora: 0, cocientes: {}, advertencias: [{ tipo: 'votos_cero' }], listaUnica: false
+    };
+  }
+
+  const listaUnica = pactos.length === 1;
+
+  const cocientes = {};
+  for (const p of pactos) {
+    cocientes[p] = [];
+    for (let k = 1; k <= N; k++) {
+      cocientes[p].push(votosPorPacto[p] / k);
+    }
+  }
+
+  let cuposPorPacto;
+  let cifraRepartidora;
+
+  if (listaUnica) {
+    cuposPorPacto = {};
+    cuposPorPacto[pactos[0]] = N;
+    cifraRepartidora = null;
+  } else {
+    const todosLosCocientes = pactos.flatMap(p => cocientes[p]);
+    todosLosCocientes.sort((a, b) => b - a);
+    cifraRepartidora = todosLosCocientes[N - 1];
+
+    cuposPorPacto = {};
+    for (const p of pactos) {
+      cuposPorPacto[p] = Math.floor(votosPorPacto[p] / cifraRepartidora);
+    }
+
+    let sumaActual = Object.values(cuposPorPacto).reduce((a, b) => a + b, 0);
+    while (sumaActual < N) {
+      const candidatosCupoExtra = pactos.filter(p =>
+        Math.abs(votosPorPacto[p] / (cuposPorPacto[p] + 1) - cifraRepartidora) < 1e-9
+      );
+      if (candidatosCupoExtra.length === 0) break;
+
+      candidatosCupoExtra.sort((a, b) => votosPorPacto[b] - votosPorPacto[a]);
+
+      if (candidatosCupoExtra.length > 1 &&
+          votosPorPacto[candidatosCupoExtra[0]] === votosPorPacto[candidatosCupoExtra[1]]) {
+        const idx = Math.floor(Math.random() * candidatosCupoExtra.length);
+        const ganador = candidatosCupoExtra[idx];
+        cuposPorPacto[ganador]++;
+        advertencias.push({ tipo: 'sorteo_dhondt', cupo: sumaActual + 1, pactoGanador: ganador });
+      } else {
+        cuposPorPacto[candidatosCupoExtra[0]]++;
+      }
+      sumaActual++;
+    }
+  }
+
+  const electos = [];
+  const noElectos = [];
+
+  for (const p of pactos) {
+    const del_pacto = candidatos
+      .filter(c => c.pacto === p)
+      .sort((a, b) => b.votos - a.votos);
+    const nCupos = cuposPorPacto[p] || 0;
+
+    for (let i = 0; i < del_pacto.length; i++) {
+      const c = { ...del_pacto[i], coeficiente: null, estado: null, sorteo: false };
+      if (i < nCupos) {
+        if (i === nCupos - 1 && del_pacto[i + 1] &&
+            del_pacto[i].votos === del_pacto[i + 1].votos) {
+          advertencias.push({ tipo: 'sorteo_individual', pacto: p, votos: del_pacto[i].votos });
+          c.sorteo = true;
+          c.estado = 'sorteo';
+        } else {
+          c.estado = 'electo';
+        }
+        electos.push(c);
+      } else {
+        c.estado = 'no_electo';
+        noElectos.push(c);
+      }
+    }
+  }
+
+  return { electos, noElectos, cuposPorPacto, cifraRepartidora: cifraRepartidora || null, cocientes, advertencias, listaUnica };
+}
+
+// ── parity.js ─────────────────────────────────────────────────────────────────
+function aplicarParidadCCN(electos, noElectos) {
+  const N = electos.length;
+  const minGenero = Math.ceil(N * 0.4);
+
+  let electosActuales = electos.map(c => ({ ...c }));
+  let noElectosActuales = noElectos.map(c => ({ ...c }));
+  const advertencias = [];
+  let corregido = false;
+
+  const contarGenero = (arr, sexo) => arr.filter(c => c.sexo === sexo).length;
+
+  for (let iter = 0; iter < N * 2; iter++) {
+    const nH = contarGenero(electosActuales, 'H');
+    const nM = contarGenero(electosActuales, 'M');
+    if (nH >= minGenero && nM >= minGenero) break;
+
+    const generoSub = nH < nM ? 'H' : 'M';
+    const generoSobre = generoSub === 'H' ? 'M' : 'H';
+
+    const pactos = [...new Set(electosActuales.map(c => c.pacto))];
+    const deficits = pactos.map(p => {
+      const delPacto = electosActuales.filter(c => c.pacto === p);
+      const nSub = delPacto.filter(c => c.sexo === generoSub).length;
+      const nTot = delPacto.length;
+      return { pacto: p, deficit: Math.max(0, Math.ceil(nTot * 0.4) - nSub) };
+    });
+    deficits.sort((a, b) => b.deficit - a.deficit);
+
+    let reemplazado = false;
+    for (const { pacto } of deficits) {
+      const salientes = electosActuales
+        .filter(c => c.pacto === pacto && c.sexo === generoSobre)
+        .sort((a, b) => a.votos - b.votos);
+      const entrantes = noElectosActuales
+        .filter(c => c.pacto === pacto && c.sexo === generoSub)
+        .sort((a, b) => b.votos - a.votos);
+
+      if (salientes.length > 0 && entrantes.length > 0) {
+        const saliente = salientes[0];
+        const entrante = entrantes[0];
+        electosActuales = electosActuales.filter(c => c.id !== saliente.id);
+        noElectosActuales = noElectosActuales.filter(c => c.id !== entrante.id);
+        electosActuales.push({ ...entrante, estado: 'paridad' });
+        noElectosActuales.push({ ...saliente, estado: 'no_electo' });
+        corregido = true;
+        reemplazado = true;
+        break;
+      }
+    }
+
+    if (!reemplazado) {
+      return { electos: electosActuales, noElectos: noElectosActuales, corregido, imposible: true, advertencias };
+    }
+  }
+
+  return { electos: electosActuales, noElectos: noElectosActuales, corregido, imposible: false, advertencias };
+}
+
+function aplicarParidadCCR(electos, noElectos, padron, cupos) {
+  const minGenero = Math.ceil(cupos * 0.4);
+  const conCoef = arr => arr.map(c => ({ ...c, coeficiente: c.votos / padron }));
+
+  let electosActuales = conCoef(electos);
+  let noElectosActuales = conCoef(noElectos);
+  let corregido = false;
+
+  const contarGenero = (arr, sexo) => arr.filter(c => c.sexo === sexo).length;
+
+  for (let iter = 0; iter < cupos * 2; iter++) {
+    const nH = contarGenero(electosActuales, 'H');
+    const nM = contarGenero(electosActuales, 'M');
+    if (nH >= minGenero && nM >= minGenero) break;
+
+    const generoSub = nH < nM ? 'H' : 'M';
+    const generoSobre = generoSub === 'H' ? 'M' : 'H';
+
+    const salientes = electosActuales
+      .filter(c => c.sexo === generoSobre)
+      .sort((a, b) => a.coeficiente - b.coeficiente);
+    if (salientes.length === 0) break;
+    const saliente = salientes[0];
+
+    const entrantes = noElectosActuales
+      .filter(c => c.pacto === saliente.pacto && c.sexo === generoSub)
+      .sort((a, b) => b.coeficiente - a.coeficiente);
+
+    if (entrantes.length > 0) {
+      const entrante = entrantes[0];
+      electosActuales = electosActuales.filter(c => c.id !== saliente.id);
+      noElectosActuales = noElectosActuales.filter(c => c.id !== entrante.id);
+      electosActuales.push({ ...entrante, estado: 'paridad' });
+      noElectosActuales.push({ ...saliente, estado: 'no_electo' });
+      corregido = true;
+    } else {
+      const otrasPactos = [...new Set(
+        electosActuales.filter(c => c.sexo === generoSobre && c.pacto !== saliente.pacto).map(c => c.pacto)
+      )];
+      let encontrado = false;
+      for (const p of otrasPactos) {
+        const e = noElectosActuales
+          .filter(c => c.pacto === p && c.sexo === generoSub)
+          .sort((a, b) => b.coeficiente - a.coeficiente);
+        const sal = electosActuales
+          .filter(c => c.pacto === p && c.sexo === generoSobre)
+          .sort((a, b) => a.coeficiente - b.coeficiente);
+        if (e.length > 0 && sal.length > 0) {
+          electosActuales = electosActuales.filter(c => c.id !== sal[0].id);
+          noElectosActuales = noElectosActuales.filter(c => c.id !== e[0].id);
+          electosActuales.push({ ...e[0], estado: 'paridad' });
+          noElectosActuales.push({ ...sal[0], estado: 'no_electo' });
+          corregido = true;
+          encontrado = true;
+          break;
+        }
+      }
+      if (!encontrado) {
+        return { electos: electosActuales, noElectos: noElectosActuales, corregido, imposible: true };
+      }
+    }
+  }
+
+  return { electos: electosActuales, noElectos: noElectosActuales, corregido, imposible: false };
+}
+
+// ── ui.js ─────────────────────────────────────────────────────────────────────
+function renderBanner(texto, tipo) {
+  tipo = tipo || 'warn';
+  const div = document.createElement('div');
+  div.className = 'banner-' + tipo;
+  div.textContent = texto;
+  return div;
+}
+
+function estadoBadge(estado) {
+  const mapa = {
+    electo:  '<span class="badge-electo">✓ Electo</span>',
+    paridad: '<span class="badge-paridad">★ Paridad</span>',
+    sorteo:  '<span class="badge-sorteo">🎲 Sorteo</span>',
+  };
+  return mapa[estado] || '';
+}
+
+function renderCCNPactos() {
+  const ctx = getContext('ccn');
+  const lista = document.getElementById('ccn-pactos-list');
+  const sel   = document.getElementById('ccn-pacto-sel');
+
+  lista.innerHTML = ctx.pactos.map(p =>
+    '<span class="inline-flex items-center gap-1 bg-gray-100 border rounded px-2 py-1 text-sm">' +
+      p +
+      '<button class="text-red-500 hover:text-red-700 font-bold"' +
+        ' onclick="window._removeCCNPacto(\'' + p + '\')"' +
+        (ctx.candidatos.some(c => c.pacto === p) ? ' disabled title="Tiene candidatos"' : '') +
+      '>×</button>' +
+    '</span>'
+  ).join('');
+
+  sel.innerHTML = '<option value="">-- Pacto --</option>' +
+    ctx.pactos.map(p => '<option value="' + p + '">' + p + '</option>').join('');
+}
+
+function addCCNPacto(nombre) {
+  const ctx = getContext('ccn');
+  if (!nombre.trim() || ctx.pactos.includes(nombre.trim())) return false;
+  ctx.pactos.push(nombre.trim());
+  renderCCNPactos();
+  return true;
+}
+
+function removeCCNPacto(nombre) {
+  const ctx = getContext('ccn');
+  if (ctx.candidatos.some(c => c.pacto === nombre)) return;
+  ctx.pactos = ctx.pactos.filter(p => p !== nombre);
+  renderCCNPactos();
+}
+
+function renderCCNCandidatos() {
+  const ctx = getContext('ccn');
+  const lista = document.getElementById('ccn-candidatos-list');
+  if (ctx.candidatos.length === 0) {
+    lista.innerHTML = '<p class="text-sm text-gray-400">Sin candidatos aún.</p>';
+    return;
+  }
+  lista.innerHTML = ctx.candidatos.map(c =>
+    '<div class="grid grid-cols-5 gap-2 text-sm items-center border-b py-1">' +
+      '<span class="col-span-2">' + c.nombre + '</span>' +
+      '<span>' + c.pacto + '</span>' +
+      '<span>' + c.votos + '</span>' +
+      '<span class="flex items-center gap-1">' +
+        (c.sexo === 'H' ? 'Hombre' : 'Mujer') +
+        '<button class="ml-2 text-red-400 hover:text-red-600"' +
+          ' onclick="window._removeCCNCandidato(' + c.id + ')">×</button>' +
+      '</span>' +
+    '</div>'
+  ).join('');
+}
+
+function addCCNCandidato(datos) {
+  const { nombre, pacto, votos, sexo } = datos;
+  if (!nombre.trim() || !pacto || votos === '' || !sexo) return false;
+  const ctx = getContext('ccn');
+  ctx.candidatos.push({ id: newId(), nombre: nombre.trim(), pacto, votos: parseInt(votos), sexo });
+  renderCCNCandidatos();
+  document.getElementById('ccn-resultado-output').classList.add('hidden');
+  return true;
+}
+
+function removeCCNCandidato(id) {
+  const ctx = getContext('ccn');
+  ctx.candidatos = ctx.candidatos.filter(c => c.id !== id);
+  renderCCNCandidatos();
+}
+
+function calcularCCN() {
+  const ctx = getContext('ccn');
+  const output = document.getElementById('ccn-resultado-output');
+  output.innerHTML = '';
+  output.classList.remove('hidden');
+
+  if (ctx.pactos.length === 0 || ctx.candidatos.length === 0) {
+    output.appendChild(renderBanner('Ingresa al menos un pacto y un candidato antes de calcular.', 'err'));
+    return;
+  }
+
+  const dhondt = runDhondt(ctx.candidatos, ctx.pactos, CCN_CUPOS);
+
+  if (dhondt.listaUnica) {
+    output.appendChild(renderBanner('Lista única — se aplica conteo directo (art. 74)', 'warn'));
+  }
+
+  dhondt.advertencias.forEach(function(adv) {
+    if (adv.tipo === 'sorteo_dhondt') {
+      output.appendChild(renderBanner('⚠ Empate en cifra repartidora — se requiere sorteo para el cupo N°' + adv.cupo + '. Simulación asignó a: ' + adv.pactoGanador, 'warn'));
+    }
+    if (adv.tipo === 'sorteo_individual') {
+      output.appendChild(renderBanner('⚠ Empate en votos individuales en pacto ' + adv.pacto + ' (' + adv.votos + ' votos) — se requiere sorteo', 'warn'));
+    }
+  });
+
+  if (!dhondt.listaUnica) {
+    output.appendChild(renderDhondtTable(dhondt, ctx.pactos, CCN_CUPOS));
+  }
+
+  const paridad = aplicarParidadCCN(dhondt.electos, dhondt.noElectos);
+
+  if (paridad.imposible) {
+    output.appendChild(renderBanner('⚠ No es posible alcanzar la paridad con los candidatos ingresados.', 'err'));
+  } else if (paridad.corregido) {
+    output.appendChild(renderBanner('Se aplicó corrección de paridad (art. 76–77a)', 'warn'));
+  }
+
+  output.appendChild(renderElectos(paridad.electos, false));
+  output.appendChild(renderIndicadorParidad(paridad.electos, CCN_CUPOS));
+}
+
+function renderDhondtTable(dhondt, pactos, N) {
+  const { cocientes, cuposPorPacto, cifraRepartidora } = dhondt;
+  const ganadores = new Set();
+
+  const todos = pactos.flatMap(p =>
+    cocientes[p].map((v, i) => ({ p, k: i + 1, v }))
+  ).sort((a, b) => b.v - a.v).slice(0, N);
+  todos.forEach(function(x) { ganadores.add(x.p + '-' + x.k); });
+
+  const wrap = document.createElement('div');
+  wrap.className = 'overflow-x-auto mb-4';
+  wrap.innerHTML =
+    '<h3 class="font-semibold mb-2">Tabla D\'Hondt</h3>' +
+    '<table class="text-sm border-collapse w-full">' +
+      '<thead><tr class="bg-gray-100">' +
+        '<th class="border px-2 py-1 text-left">Pacto</th>' +
+        '<th class="border px-2 py-1">Total votos</th>' +
+        Array.from({length: N}, (_, i) => '<th class="border px-2 py-1">÷' + (i+1) + '</th>').join('') +
+        '<th class="border px-2 py-1">Cupos</th>' +
+      '</tr></thead>' +
+      '<tbody>' +
+        pactos.map(p =>
+          '<tr>' +
+            '<td class="border px-2 py-1 font-medium">' + p + '</td>' +
+            '<td class="border px-2 py-1 text-center">' + (cocientes[p][0] * 1) + '</td>' +
+            cocientes[p].map((v, i) =>
+              '<td class="border px-2 py-1 text-center ' + (ganadores.has(p + '-' + (i+1)) ? 'dhondt-winner' : '') + '">' +
+                v.toFixed(1) +
+              '</td>'
+            ).join('') +
+            '<td class="border px-2 py-1 text-center font-bold">' + (cuposPorPacto[p] || 0) + '</td>' +
+          '</tr>'
+        ).join('') +
+      '</tbody>' +
+    '</table>' +
+    '<p class="text-xs text-gray-400 mt-1">Cifra repartidora: ' + (cifraRepartidora ? cifraRepartidora.toFixed(2) : '—') + '</p>';
+  return wrap;
+}
+
+function renderElectos(electos, mostrarCoef) {
+  const wrap = document.createElement('div');
+  wrap.className = 'mb-4';
+  wrap.innerHTML =
+    '<h3 class="font-semibold mb-2">Candidatos Electos</h3>' +
+    '<table class="text-sm border-collapse w-full">' +
+      '<thead><tr class="bg-gray-100">' +
+        '<th class="border px-2 py-1">#</th>' +
+        '<th class="border px-2 py-1 text-left">Nombre</th>' +
+        '<th class="border px-2 py-1">Pacto</th>' +
+        '<th class="border px-2 py-1">Votos</th>' +
+        '<th class="border px-2 py-1">Sexo</th>' +
+        (mostrarCoef ? '<th class="border px-2 py-1">Coef.</th>' : '') +
+        '<th class="border px-2 py-1">Estado</th>' +
+      '</tr></thead>' +
+      '<tbody>' +
+        electos.map(function(c, i) {
+          return '<tr class="' + (c.estado === 'paridad' ? 'bg-yellow-50' : '') + '">' +
+            '<td class="border px-2 py-1 text-center">' + (i+1) + '</td>' +
+            '<td class="border px-2 py-1">' + c.nombre + '</td>' +
+            '<td class="border px-2 py-1 text-center">' + c.pacto + '</td>' +
+            '<td class="border px-2 py-1 text-center">' + c.votos + '</td>' +
+            '<td class="border px-2 py-1 text-center">' + (c.sexo === 'H' ? 'Hombre' : 'Mujer') + '</td>' +
+            (mostrarCoef ? '<td class="border px-2 py-1 text-center">' + (c.coeficiente ? c.coeficiente.toFixed(4) : '—') + '</td>' : '') +
+            '<td class="border px-2 py-1 text-center">' + estadoBadge(c.estado) + '</td>' +
+          '</tr>';
+        }).join('') +
+      '</tbody>' +
+    '</table>';
+  return wrap;
+}
+
+function renderIndicadorParidad(electos, totalCupos) {
+  const nH = electos.filter(c => c.sexo === 'H').length;
+  const nM = electos.filter(c => c.sexo === 'M').length;
+  const min = Math.ceil(totalCupos * 0.4);
+  const cumple = nH >= min && nM >= min;
+  const div = document.createElement('div');
+  div.className = 'banner-' + (cumple ? 'ok' : 'err');
+  div.innerHTML = 'Hombres: <strong>' + nH + '</strong> &nbsp; Mujeres: <strong>' + nM + '</strong> &nbsp;→&nbsp; ' +
+    (cumple ? '✓ Cumple paridad (mín. ' + min + ' c/u)' : '⚠ No cumple paridad (mín. ' + min + ' c/u)');
+  return div;
+}
+
+// ── CCR UI ────────────────────────────────────────────────────────────────────
+function initCCR() {
+  const sel = document.getElementById('ccr-region-sel');
+  sel.innerHTML = REGIONES.map(r =>
+    '<option value="' + r.id + '">' + r.nombre + ' (' + r.cupos + ' cupo' + (r.cupos > 1 ? 's' : '') + ')</option>'
+  ).join('');
+  actualizarCCRRegion(REGIONES[0].id);
+}
+
+function actualizarCCRRegion(regionId) {
+  const region = REGIONES.find(r => r.id === regionId);
+  document.getElementById('ccr-cupos-badge').textContent =
+    region.cupos + ' cupo' + (region.cupos > 1 ? 's' : '') + ' — Padrón: ' + region.padron;
+  renderCCRPactos(regionId);
+  renderCCRCandidatos(regionId);
+  document.getElementById('ccr-resultado-output').classList.add('hidden');
+}
+
+function renderCCRPactos(regionId) {
+  const ctx = getContext('ccr', regionId);
+  const lista = document.getElementById('ccr-pactos-list');
+  const sel   = document.getElementById('ccr-pacto-sel');
+
+  lista.innerHTML = ctx.pactos.map(p =>
+    '<span class="inline-flex items-center gap-1 bg-gray-100 border rounded px-2 py-1 text-sm">' +
+      p +
+      '<button class="text-red-500 hover:text-red-700 font-bold"' +
+        ' onclick="window._removeCCRPacto(\'' + regionId + '\', \'' + p + '\')"' +
+        (ctx.candidatos.some(c => c.pacto === p) ? ' disabled title="Tiene candidatos"' : '') +
+      '>×</button>' +
+    '</span>'
+  ).join('');
+
+  sel.innerHTML = '<option value="">-- Pacto --</option>' +
+    ctx.pactos.map(p => '<option value="' + p + '">' + p + '</option>').join('');
+}
+
+function addCCRPacto(regionId, nombre) {
+  const ctx = getContext('ccr', regionId);
+  if (!nombre.trim() || ctx.pactos.includes(nombre.trim())) return false;
+  ctx.pactos.push(nombre.trim());
+  renderCCRPactos(regionId);
+  return true;
+}
+
+function removeCCRPacto(regionId, nombre) {
+  const ctx = getContext('ccr', regionId);
+  if (ctx.candidatos.some(c => c.pacto === nombre)) return;
+  ctx.pactos = ctx.pactos.filter(p => p !== nombre);
+  renderCCRPactos(regionId);
+}
+
+function renderCCRCandidatos(regionId) {
+  const ctx = getContext('ccr', regionId);
+  const lista = document.getElementById('ccr-candidatos-list');
+  if (ctx.candidatos.length === 0) {
+    lista.innerHTML = '<p class="text-sm text-gray-400">Sin candidatos aún.</p>';
+    return;
+  }
+  lista.innerHTML = ctx.candidatos.map(c =>
+    '<div class="grid grid-cols-5 gap-2 text-sm items-center border-b py-1">' +
+      '<span class="col-span-2">' + c.nombre + '</span>' +
+      '<span>' + c.pacto + '</span>' +
+      '<span>' + c.votos + '</span>' +
+      '<span class="flex items-center gap-1">' +
+        (c.sexo === 'H' ? 'Hombre' : 'Mujer') +
+        '<button class="ml-2 text-red-400 hover:text-red-600"' +
+          ' onclick="window._removeCCRCandidato(\'' + regionId + '\', ' + c.id + ')">×</button>' +
+      '</span>' +
+    '</div>'
+  ).join('');
+}
+
+function addCCRCandidato(regionId, datos) {
+  const { nombre, pacto, votos, sexo } = datos;
+  if (!nombre.trim() || !pacto || votos === '' || !sexo) return false;
+  const ctx = getContext('ccr', regionId);
+  ctx.candidatos.push({ id: newId(), nombre: nombre.trim(), pacto, votos: parseInt(votos), sexo });
+  renderCCRCandidatos(regionId);
+  document.getElementById('ccr-resultado-output').classList.add('hidden');
+  return true;
+}
+
+function removeCCRCandidato(regionId, id) {
+  const ctx = getContext('ccr', regionId);
+  ctx.candidatos = ctx.candidatos.filter(c => c.id !== id);
+  renderCCRCandidatos(regionId);
+}
+
+function calcularCCR(regionId) {
+  const region = REGIONES.find(r => r.id === regionId);
+  const ctx = getContext('ccr', regionId);
+  const output = document.getElementById('ccr-resultado-output');
+  output.innerHTML = '';
+  output.classList.remove('hidden');
+
+  if (ctx.pactos.length === 0 || ctx.candidatos.length === 0) {
+    output.appendChild(renderBanner('Ingresa al menos un pacto y un candidato antes de calcular.', 'err'));
+    return;
+  }
+
+  const dhondt = runDhondt(ctx.candidatos, ctx.pactos, region.cupos);
+
+  if (dhondt.listaUnica) {
+    output.appendChild(renderBanner('Lista única — se aplica conteo directo (art. 74)', 'warn'));
+  }
+
+  dhondt.advertencias.forEach(function(adv) {
+    if (adv.tipo === 'sorteo_dhondt') {
+      output.appendChild(renderBanner('⚠ Empate en cifra repartidora — se requiere sorteo para el cupo N°' + adv.cupo + '. Simulación asignó a: ' + adv.pactoGanador, 'warn'));
+    }
+    if (adv.tipo === 'sorteo_individual') {
+      output.appendChild(renderBanner('⚠ Empate en votos individuales en pacto ' + adv.pacto + ' (' + adv.votos + ' votos) — se requiere sorteo', 'warn'));
+    }
+  });
+
+  if (!dhondt.listaUnica) {
+    output.appendChild(renderDhondtTable(dhondt, ctx.pactos, region.cupos));
+  }
+
+  const paridad = aplicarParidadCCR(dhondt.electos, dhondt.noElectos, region.padron, region.cupos);
+
+  if (paridad.imposible) {
+    output.appendChild(renderBanner('⚠ No es posible alcanzar la paridad con los candidatos ingresados.', 'err'));
+  } else if (paridad.corregido) {
+    output.appendChild(renderBanner('Se aplicó corrección de paridad (art. 77b)', 'warn'));
+  }
+
+  output.appendChild(renderElectos(paridad.electos, true));
+  output.appendChild(renderIndicadorParidad(paridad.electos, region.cupos));
+}
+
+function renderResumenNacionalCCR() {
+  const output = document.getElementById('ccr-resultado-output');
+  output.innerHTML = '';
+  output.classList.remove('hidden');
+
+  const regionesConDatos = REGIONES.filter(r => getContext('ccr', r.id).candidatos.length > 0);
+
+  if (regionesConDatos.length === 0) {
+    output.appendChild(renderBanner('No hay datos ingresados en ninguna región.', 'err'));
+    return;
+  }
+
+  const titulo = document.createElement('h3');
+  titulo.className = 'font-bold text-lg mb-4';
+  titulo.textContent = 'Resumen Nacional CCR';
+  output.appendChild(titulo);
+
+  regionesConDatos.forEach(function(region) {
+    const ctx = getContext('ccr', region.id);
+    const seccion = document.createElement('div');
+    seccion.className = 'mb-6 border rounded p-3 bg-white';
+
+    const dhondt = runDhondt(ctx.candidatos, ctx.pactos, region.cupos);
+    const paridad = aplicarParidadCCR(dhondt.electos, dhondt.noElectos, region.padron, region.cupos);
+
+    seccion.innerHTML = '<h4 class="font-semibold mb-2">' + region.nombre + ' (' + region.cupos + ' cupo' + (region.cupos > 1 ? 's' : '') + ')</h4>';
+    seccion.appendChild(renderElectos(paridad.electos, true));
+    seccion.appendChild(renderIndicadorParidad(paridad.electos, region.cupos));
+    output.appendChild(seccion);
+  });
+}
+
+// ── app.js — wiring ───────────────────────────────────────────────────────────
+window._removeCCNPacto     = removeCCNPacto;
+window._removeCCNCandidato = removeCCNCandidato;
+window._removeCCRPacto     = function(regionId, nombre) { removeCCRPacto(regionId, nombre); };
+window._removeCCRCandidato = function(regionId, id) { removeCCRCandidato(regionId, id); };
+
+document.getElementById('tab-ccn').addEventListener('click', function() {
+  document.getElementById('panel-ccn').classList.remove('hidden');
+  document.getElementById('panel-ccr').classList.add('hidden');
+  document.getElementById('tab-ccn').classList.add('tab-active');
+  document.getElementById('tab-ccr').classList.remove('tab-active');
+});
+document.getElementById('tab-ccr').addEventListener('click', function() {
+  document.getElementById('panel-ccn').classList.add('hidden');
+  document.getElementById('panel-ccr').classList.remove('hidden');
+  document.getElementById('tab-ccn').classList.remove('tab-active');
+  document.getElementById('tab-ccr').classList.add('tab-active');
+});
+
+document.getElementById('ccn-add-pacto').addEventListener('click', function() {
+  var input = document.getElementById('ccn-new-pacto');
+  if (addCCNPacto(input.value)) input.value = '';
+});
+document.getElementById('ccn-new-pacto').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') document.getElementById('ccn-add-pacto').click();
+});
+
+document.getElementById('ccn-add-candidato').addEventListener('click', function() {
+  var ok = addCCNCandidato({
+    nombre: document.getElementById('ccn-nombre').value,
+    pacto:  document.getElementById('ccn-pacto-sel').value,
+    votos:  document.getElementById('ccn-votos').value,
+    sexo:   document.getElementById('ccn-sexo').value,
+  });
+  if (ok) {
+    document.getElementById('ccn-nombre').value = '';
+    document.getElementById('ccn-votos').value  = '';
+    document.getElementById('ccn-sexo').value   = '';
+  }
+});
+document.getElementById('ccn-calcular').addEventListener('click', calcularCCN);
+
+document.getElementById('ccr-region-sel').addEventListener('change', function(e) {
+  state.ccrRegionActiva = e.target.value;
+  actualizarCCRRegion(e.target.value);
+});
+
+document.getElementById('ccr-add-pacto').addEventListener('click', function() {
+  var input = document.getElementById('ccr-new-pacto');
+  var regionId = state.ccrRegionActiva;
+  if (addCCRPacto(regionId, input.value)) input.value = '';
+});
+document.getElementById('ccr-new-pacto').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') document.getElementById('ccr-add-pacto').click();
+});
+
+document.getElementById('ccr-add-candidato').addEventListener('click', function() {
+  var regionId = state.ccrRegionActiva;
+  var ok = addCCRCandidato(regionId, {
+    nombre: document.getElementById('ccr-nombre').value,
+    pacto:  document.getElementById('ccr-pacto-sel').value,
+    votos:  document.getElementById('ccr-votos').value,
+    sexo:   document.getElementById('ccr-sexo').value,
+  });
+  if (ok) {
+    document.getElementById('ccr-nombre').value = '';
+    document.getElementById('ccr-votos').value  = '';
+    document.getElementById('ccr-sexo').value   = '';
+  }
+});
+
+document.getElementById('ccr-calcular').addEventListener('click', function() {
+  calcularCCR(state.ccrRegionActiva);
+});
+document.getElementById('ccr-calcular-todas').addEventListener('click', renderResumenNacionalCCR);
+
+// Init
+renderCCNPactos();
+renderCCNCandidatos();
+initCCR();
+</script>
 </body>
 </html>

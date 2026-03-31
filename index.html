@@ -10,9 +10,14 @@
 <body class="bg-gray-50 text-gray-900 min-h-screen">
 
   <!-- Header -->
-  <header class="bg-red-700 text-white p-4 shadow">
-    <h1 class="text-2xl font-bold">Simulador Elecciones JS 2026</h1>
-    <p class="text-sm opacity-80">Juventud Socialista de Chile</p>
+  <header class="bg-red-700 text-white p-4 shadow flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold">Simulador Elecciones JS 2026</h1>
+      <p class="text-sm opacity-80">Juventud Socialista de Chile</p>
+    </div>
+    <button onclick="clearState()" class="bg-red-900 hover:bg-red-950 text-white text-sm px-3 py-1 rounded opacity-80 hover:opacity-100">
+      🗑 Borrar datos
+    </button>
   </header>
 
   <!-- Tabs -->
@@ -184,6 +189,36 @@ function getContext(tipo, regionId) {
 
 let nextId = 1;
 function newId() { return nextId++; }
+
+// ── Persistencia localStorage ─────────────────────────────────────────────────
+const STORAGE_KEY = 'simulador_js_2026';
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      ccn: state.ccn,
+      ccr: state.ccr,
+      nextId: nextId,
+    }));
+  } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (saved.ccn)    state.ccn = saved.ccn;
+    if (saved.ccr)    Object.assign(state.ccr, saved.ccr);
+    if (saved.nextId) nextId = saved.nextId;
+  } catch(e) {}
+}
+
+function clearState() {
+  if (!confirm('¿Borrar todos los datos ingresados?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
 
 // ── dhondt.js ─────────────────────────────────────────────────────────────────
 function runDhondt(candidatos, pactos, N) {
@@ -451,6 +486,7 @@ function addCCNPacto(nombre) {
   if (!nombre.trim() || ctx.pactos.includes(nombre.trim())) return false;
   ctx.pactos.push(nombre.trim());
   renderCCNPactos();
+  saveState();
   return true;
 }
 
@@ -459,6 +495,7 @@ function removeCCNPacto(nombre) {
   if (ctx.candidatos.some(c => c.pacto === nombre)) return;
   ctx.pactos = ctx.pactos.filter(p => p !== nombre);
   renderCCNPactos();
+  saveState();
 }
 
 function filaViewCCN(c, ctx) {
@@ -524,6 +561,7 @@ window._saveCCNCandidato = function(id) {
   c.nombre = nombre; c.pacto = pacto; c.votos = votos; c.sexo = sexo;
   renderCCNCandidatos();
   document.getElementById('ccn-resultado-output').classList.add('hidden');
+  saveState();
 };
 
 function addCCNCandidato(datos) {
@@ -533,6 +571,7 @@ function addCCNCandidato(datos) {
   ctx.candidatos.push({ id: newId(), nombre: nombre.trim(), pacto, votos: parseInt(votos), sexo });
   renderCCNCandidatos();
   document.getElementById('ccn-resultado-output').classList.add('hidden');
+  saveState();
   return true;
 }
 
@@ -540,6 +579,7 @@ function removeCCNCandidato(id) {
   const ctx = getContext('ccn');
   ctx.candidatos = ctx.candidatos.filter(c => c.id !== id);
   renderCCNCandidatos();
+  saveState();
 }
 
 function calcularCCN() {
@@ -709,6 +749,7 @@ function addCCRPacto(regionId, nombre) {
   if (!nombre.trim() || ctx.pactos.includes(nombre.trim())) return false;
   ctx.pactos.push(nombre.trim());
   renderCCRPactos(regionId);
+  saveState();
   return true;
 }
 
@@ -717,6 +758,7 @@ function removeCCRPacto(regionId, nombre) {
   if (ctx.candidatos.some(c => c.pacto === nombre)) return;
   ctx.pactos = ctx.pactos.filter(p => p !== nombre);
   renderCCRPactos(regionId);
+  saveState();
 }
 
 function renderCCRCandidatos(regionId) {
@@ -777,6 +819,7 @@ window._saveCCRCandidato = function(regionId, id) {
   c.nombre = nombre; c.pacto = pacto; c.votos = votos; c.sexo = sexo;
   renderCCRCandidatos(regionId);
   document.getElementById('ccr-resultado-output').classList.add('hidden');
+  saveState();
 };
 
 function addCCRCandidato(regionId, datos) {
@@ -786,6 +829,7 @@ function addCCRCandidato(regionId, datos) {
   ctx.candidatos.push({ id: newId(), nombre: nombre.trim(), pacto, votos: parseInt(votos), sexo });
   renderCCRCandidatos(regionId);
   document.getElementById('ccr-resultado-output').classList.add('hidden');
+  saveState();
   return true;
 }
 
@@ -947,6 +991,7 @@ document.getElementById('ccr-calcular').addEventListener('click', function() {
 document.getElementById('ccr-calcular-todas').addEventListener('click', renderResumenNacionalCCR);
 
 // Init
+loadState();
 renderCCNPactos();
 renderCCNCandidatos();
 initCCR();

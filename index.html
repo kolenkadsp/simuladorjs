@@ -461,6 +461,41 @@ function removeCCNPacto(nombre) {
   renderCCNPactos();
 }
 
+function filaViewCCN(c, ctx) {
+  var pactoOpts = ctx.pactos.map(p => '<option value="' + p + '"' + (c.pacto === p ? ' selected' : '') + '>' + p + '</option>').join('');
+  return '<div class="grid grid-cols-5 gap-2 text-sm items-center border-b py-1" data-id="' + c.id + '">' +
+    '<span class="col-span-2">' + c.nombre + '</span>' +
+    '<span>' + c.pacto + '</span>' +
+    '<span>' + c.votos + '</span>' +
+    '<span class="flex items-center gap-1">' +
+      (c.sexo === 'H' ? 'Hombre' : 'Mujer') +
+      '<button class="ml-1 text-blue-400 hover:text-blue-600" title="Editar"' +
+        ' onclick="window._editCCNCandidato(' + c.id + ')">✏️</button>' +
+      '<button class="ml-1 text-red-400 hover:text-red-600"' +
+        ' onclick="window._removeCCNCandidato(' + c.id + ')">×</button>' +
+    '</span>' +
+  '</div>';
+}
+
+function filaEditCCN(c, ctx) {
+  var pactoOpts = ctx.pactos.map(p => '<option value="' + p + '"' + (c.pacto === p ? ' selected' : '') + '>' + p + '</option>').join('');
+  return '<div class="grid grid-cols-5 gap-2 text-sm items-center border-b py-1 bg-blue-50" data-id="' + c.id + '">' +
+    '<input class="col-span-2 border rounded px-1 py-0.5" id="edit-ccn-nombre-' + c.id + '" value="' + c.nombre + '">' +
+    '<select class="border rounded px-1 py-0.5" id="edit-ccn-pacto-' + c.id + '">' + pactoOpts + '</select>' +
+    '<input type="number" min="0" class="border rounded px-1 py-0.5" id="edit-ccn-votos-' + c.id + '" value="' + c.votos + '">' +
+    '<span class="flex items-center gap-1">' +
+      '<select class="border rounded px-1 py-0.5" id="edit-ccn-sexo-' + c.id + '">' +
+        '<option value="H"' + (c.sexo === 'H' ? ' selected' : '') + '>H</option>' +
+        '<option value="M"' + (c.sexo === 'M' ? ' selected' : '') + '>M</option>' +
+      '</select>' +
+      '<button class="ml-1 text-green-600 hover:text-green-800 font-bold" title="Guardar"' +
+        ' onclick="window._saveCCNCandidato(' + c.id + ')">✓</button>' +
+      '<button class="ml-1 text-gray-400 hover:text-gray-600"' +
+        ' onclick="renderCCNCandidatos()">✕</button>' +
+    '</span>' +
+  '</div>';
+}
+
 function renderCCNCandidatos() {
   const ctx = getContext('ccn');
   const lista = document.getElementById('ccn-candidatos-list');
@@ -468,19 +503,28 @@ function renderCCNCandidatos() {
     lista.innerHTML = '<p class="text-sm text-gray-400">Sin candidatos aún.</p>';
     return;
   }
-  lista.innerHTML = ctx.candidatos.map(c =>
-    '<div class="grid grid-cols-5 gap-2 text-sm items-center border-b py-1">' +
-      '<span class="col-span-2">' + c.nombre + '</span>' +
-      '<span>' + c.pacto + '</span>' +
-      '<span>' + c.votos + '</span>' +
-      '<span class="flex items-center gap-1">' +
-        (c.sexo === 'H' ? 'Hombre' : 'Mujer') +
-        '<button class="ml-2 text-red-400 hover:text-red-600"' +
-          ' onclick="window._removeCCNCandidato(' + c.id + ')">×</button>' +
-      '</span>' +
-    '</div>'
-  ).join('');
+  lista.innerHTML = ctx.candidatos.map(c => filaViewCCN(c, ctx)).join('');
 }
+
+window._editCCNCandidato = function(id) {
+  const ctx = getContext('ccn');
+  const c = ctx.candidatos.find(x => x.id === id);
+  const row = document.querySelector('#ccn-candidatos-list [data-id="' + id + '"]');
+  if (row) row.outerHTML = filaEditCCN(c, ctx);
+};
+
+window._saveCCNCandidato = function(id) {
+  const ctx = getContext('ccn');
+  const c = ctx.candidatos.find(x => x.id === id);
+  const nombre = document.getElementById('edit-ccn-nombre-' + id).value.trim();
+  const pacto  = document.getElementById('edit-ccn-pacto-'  + id).value;
+  const votos  = parseInt(document.getElementById('edit-ccn-votos-' + id).value);
+  const sexo   = document.getElementById('edit-ccn-sexo-'  + id).value;
+  if (!nombre || !pacto || isNaN(votos)) return;
+  c.nombre = nombre; c.pacto = pacto; c.votos = votos; c.sexo = sexo;
+  renderCCNCandidatos();
+  document.getElementById('ccn-resultado-output').classList.add('hidden');
+};
 
 function addCCNCandidato(datos) {
   const { nombre, pacto, votos, sexo } = datos;
@@ -682,19 +726,58 @@ function renderCCRCandidatos(regionId) {
     lista.innerHTML = '<p class="text-sm text-gray-400">Sin candidatos aún.</p>';
     return;
   }
-  lista.innerHTML = ctx.candidatos.map(c =>
-    '<div class="grid grid-cols-5 gap-2 text-sm items-center border-b py-1">' +
+  lista.innerHTML = ctx.candidatos.map(c => {
+    var pactoOpts = ctx.pactos.map(p => '<option value="' + p + '"' + (c.pacto === p ? ' selected' : '') + '>' + p + '</option>').join('');
+    return '<div class="grid grid-cols-5 gap-2 text-sm items-center border-b py-1" data-id="' + c.id + '">' +
       '<span class="col-span-2">' + c.nombre + '</span>' +
       '<span>' + c.pacto + '</span>' +
       '<span>' + c.votos + '</span>' +
       '<span class="flex items-center gap-1">' +
         (c.sexo === 'H' ? 'Hombre' : 'Mujer') +
-        '<button class="ml-2 text-red-400 hover:text-red-600"' +
+        '<button class="ml-1 text-blue-400 hover:text-blue-600" title="Editar"' +
+          ' onclick="window._editCCRCandidato(\'' + regionId + '\', ' + c.id + ')">✏️</button>' +
+        '<button class="ml-1 text-red-400 hover:text-red-600"' +
           ' onclick="window._removeCCRCandidato(\'' + regionId + '\', ' + c.id + ')">×</button>' +
       '</span>' +
-    '</div>'
-  ).join('');
+    '</div>';
+  }).join('');
 }
+
+window._editCCRCandidato = function(regionId, id) {
+  const ctx = getContext('ccr', regionId);
+  const c = ctx.candidatos.find(x => x.id === id);
+  var pactoOpts = ctx.pactos.map(p => '<option value="' + p + '"' + (c.pacto === p ? ' selected' : '') + '>' + p + '</option>').join('');
+  const row = document.querySelector('#ccr-candidatos-list [data-id="' + id + '"]');
+  if (row) row.outerHTML =
+    '<div class="grid grid-cols-5 gap-2 text-sm items-center border-b py-1 bg-blue-50" data-id="' + id + '">' +
+      '<input class="col-span-2 border rounded px-1 py-0.5" id="edit-ccr-nombre-' + id + '" value="' + c.nombre + '">' +
+      '<select class="border rounded px-1 py-0.5" id="edit-ccr-pacto-' + id + '">' + pactoOpts + '</select>' +
+      '<input type="number" min="0" class="border rounded px-1 py-0.5" id="edit-ccr-votos-' + id + '" value="' + c.votos + '">' +
+      '<span class="flex items-center gap-1">' +
+        '<select class="border rounded px-1 py-0.5" id="edit-ccr-sexo-' + id + '">' +
+          '<option value="H"' + (c.sexo === 'H' ? ' selected' : '') + '>H</option>' +
+          '<option value="M"' + (c.sexo === 'M' ? ' selected' : '') + '>M</option>' +
+        '</select>' +
+        '<button class="ml-1 text-green-600 hover:text-green-800 font-bold" title="Guardar"' +
+          ' onclick="window._saveCCRCandidato(\'' + regionId + '\', ' + id + ')">✓</button>' +
+        '<button class="ml-1 text-gray-400 hover:text-gray-600"' +
+          ' onclick="renderCCRCandidatos(\'' + regionId + '\')">✕</button>' +
+      '</span>' +
+    '</div>';
+};
+
+window._saveCCRCandidato = function(regionId, id) {
+  const ctx = getContext('ccr', regionId);
+  const c = ctx.candidatos.find(x => x.id === id);
+  const nombre = document.getElementById('edit-ccr-nombre-' + id).value.trim();
+  const pacto  = document.getElementById('edit-ccr-pacto-'  + id).value;
+  const votos  = parseInt(document.getElementById('edit-ccr-votos-' + id).value);
+  const sexo   = document.getElementById('edit-ccr-sexo-'  + id).value;
+  if (!nombre || !pacto || isNaN(votos)) return;
+  c.nombre = nombre; c.pacto = pacto; c.votos = votos; c.sexo = sexo;
+  renderCCRCandidatos(regionId);
+  document.getElementById('ccr-resultado-output').classList.add('hidden');
+};
 
 function addCCRCandidato(regionId, datos) {
   const { nombre, pacto, votos, sexo } = datos;

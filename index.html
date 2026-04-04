@@ -9,7 +9,6 @@
 </head>
 <body class="bg-gray-50 text-gray-900 min-h-screen">
 
-  <!-- Header -->
   <header class="bg-red-700 text-white p-4 shadow flex items-center justify-between">
     <div>
       <h1 class="text-2xl font-bold">Simulador Elecciones JS 2026</h1>
@@ -20,8 +19,7 @@
     </button>
   </header>
 
-  <!-- Tabs -->
-  <div class="max-w-6xl mx-auto mt-6 px-4">
+  <div class="max-w-7xl mx-auto mt-6 px-4">
     <div class="flex border-b border-gray-300 mb-6">
       <button id="tab-ccn" class="tab-btn px-6 py-3 font-semibold border-b-2 border-red-600 text-red-700">
         Comité Central Nacional <span class="text-xs font-normal">(11 cupos)</span>
@@ -33,57 +31,61 @@
 
     <!-- CCN Panel -->
     <div id="panel-ccn">
-      <!-- Bloque 1: Pactos -->
-      <section id="ccn-pactos" class="mb-6 bg-white rounded-lg shadow p-4">
+      <section class="mb-6 bg-white rounded-lg shadow p-4">
         <h2 class="font-bold text-lg mb-3">Pactos / Listas</h2>
         <div id="ccn-pactos-list" class="flex flex-wrap gap-2 mb-3"></div>
         <div class="flex gap-2">
-          <input id="ccn-new-pacto" type="text" placeholder="Nombre del pacto"
-            class="border rounded px-3 py-1 text-sm flex-1">
-          <button id="ccn-add-pacto" class="bg-red-600 text-white px-4 py-1 rounded text-sm hover:bg-red-700">
-            + Agregar Pacto
+          <input id="ccn-new-pacto" type="text" placeholder="Nombre del pacto" class="border rounded px-3 py-1 text-sm flex-1">
+          <button id="ccn-add-pacto" class="bg-red-600 text-white px-4 py-1 rounded text-sm hover:bg-red-700">+ Agregar Pacto</button>
+        </div>
+      </section>
+
+      <section class="mb-6 bg-white rounded-lg shadow p-4">
+        <h2 class="font-bold text-lg mb-3">Candidatos</h2>
+        <div class="grid grid-cols-8 gap-1 mb-2 text-xs font-semibold text-gray-500 uppercase">
+          <span class="col-span-2">Nombre</span><span>Pacto</span><span>Lote</span><span>Comunal</span><span>Votos</span><span>Sexo</span><span></span>
+        </div>
+        <div id="ccn-candidatos-list" class="space-y-0.5 mb-3"></div>
+        <!-- Formulario agregar -->
+        <div class="relative mb-2">
+          <input id="ccn-nombre" type="text" placeholder="Buscar en padrón o escribir nombre..." autocomplete="off"
+            class="border rounded px-2 py-1 text-sm w-full">
+          <div id="ccn-ac-drop" class="hidden absolute left-0 right-0 bg-white border rounded shadow-lg z-20 max-h-48 overflow-y-auto text-sm"></div>
+        </div>
+        <div class="grid grid-cols-7 gap-1">
+          <select id="ccn-pacto-sel" class="border rounded px-1 py-1 text-sm">
+            <option value="">— Pacto —</option>
+          </select>
+          <select id="ccn-lote-sel" class="border rounded px-1 py-1 text-sm">
+            <option value="">— Lote —</option>
+          </select>
+          <input id="ccn-comunal" type="text" placeholder="Comunal" class="border rounded px-1 py-1 text-sm">
+          <input id="ccn-votos" type="number" min="0" placeholder="Votos" class="border rounded px-1 py-1 text-sm">
+          <select id="ccn-sexo" class="border rounded px-1 py-1 text-sm">
+            <option value="H">Hombre</option>
+            <option value="M">Mujer</option>
+          </select>
+          <button id="ccn-add-candidato" class="col-span-2 bg-gray-700 text-white px-2 py-1 rounded text-sm hover:bg-gray-800">
+            + Agregar (Enter)
           </button>
         </div>
       </section>
 
-      <!-- Bloque 2: Candidatos -->
-      <section id="ccn-candidatos" class="mb-6 bg-white rounded-lg shadow p-4">
-        <h2 class="font-bold text-lg mb-3">Candidatos</h2>
-        <div class="grid grid-cols-5 gap-2 mb-2 text-xs font-semibold text-gray-500 uppercase">
-          <span class="col-span-2">Nombre</span><span>Pacto</span><span>Votos</span><span>Sexo</span>
+      <section class="mb-6">
+        <div class="flex gap-3 mb-4 flex-wrap">
+          <button id="ccn-calcular-est" class="bg-red-700 text-white px-5 py-2 rounded font-semibold hover:bg-red-800">
+            Calcular — Estimado
+          </button>
+          <button id="ccn-calcular-proy" class="bg-blue-700 text-white px-5 py-2 rounded font-semibold hover:bg-blue-800">
+            Calcular — Proyectado
+          </button>
+          <span class="text-xs text-gray-400 self-center">Estimado = votos manuales · Proyectado = lote × padrón comunal (7 votos/elector CCN)</span>
         </div>
-        <div id="ccn-candidatos-list" class="space-y-1 mb-3"></div>
-        <div class="grid grid-cols-5 gap-2 items-center">
-          <input id="ccn-nombre" type="text" placeholder="Nombre"
-            class="col-span-2 border rounded px-2 py-1 text-sm">
-          <select id="ccn-pacto-sel" class="border rounded px-2 py-1 text-sm">
-            <option value="">-- Pacto --</option>
-          </select>
-          <input id="ccn-votos" type="number" min="0" placeholder="Votos"
-            class="border rounded px-2 py-1 text-sm">
-          <select id="ccn-sexo" class="border rounded px-2 py-1 text-sm">
-            <option value="">Sexo</option>
-            <option value="H">Hombre</option>
-            <option value="M">Mujer</option>
-          </select>
-        </div>
-        <button id="ccn-add-candidato"
-          class="mt-2 bg-gray-700 text-white px-4 py-1 rounded text-sm hover:bg-gray-800">
-          + Agregar Candidato
-        </button>
-      </section>
-
-      <!-- Bloque 3: Resultados CCN -->
-      <section id="ccn-resultados" class="mb-6">
-        <button id="ccn-calcular"
-          class="bg-red-700 text-white px-6 py-2 rounded font-semibold hover:bg-red-800 mb-4">
-          Calcular
-        </button>
         <div id="ccn-resultado-output" class="hidden"></div>
       </section>
     </div>
 
-    <!-- CCR Panel (hidden by default) -->
+    <!-- CCR Panel -->
     <div id="panel-ccr" class="hidden">
       <div class="mb-4">
         <label class="font-semibold mr-2">Región:</label>
@@ -91,933 +93,726 @@
         <span id="ccr-cupos-badge" class="ml-2 text-sm text-gray-500"></span>
       </div>
 
-      <!-- Bloque 1: Pactos CCR -->
-      <section id="ccr-pactos" class="mb-6 bg-white rounded-lg shadow p-4">
+      <section class="mb-6 bg-white rounded-lg shadow p-4">
         <h2 class="font-bold text-lg mb-3">Pactos / Listas</h2>
         <div id="ccr-pactos-list" class="flex flex-wrap gap-2 mb-3"></div>
         <div class="flex gap-2">
-          <input id="ccr-new-pacto" type="text" placeholder="Nombre del pacto"
-            class="border rounded px-3 py-1 text-sm flex-1">
-          <button id="ccr-add-pacto" class="bg-red-600 text-white px-4 py-1 rounded text-sm hover:bg-red-700">
-            + Agregar Pacto
-          </button>
+          <input id="ccr-new-pacto" type="text" placeholder="Nombre del pacto" class="border rounded px-3 py-1 text-sm flex-1">
+          <button id="ccr-add-pacto" class="bg-red-600 text-white px-4 py-1 rounded text-sm hover:bg-red-700">+ Agregar Pacto</button>
         </div>
       </section>
 
-      <!-- Bloque 2: Candidatos CCR -->
-      <section id="ccr-candidatos" class="mb-6 bg-white rounded-lg shadow p-4">
+      <section class="mb-6 bg-white rounded-lg shadow p-4">
         <h2 class="font-bold text-lg mb-3">Candidatos</h2>
-        <div class="grid grid-cols-5 gap-2 mb-2 text-xs font-semibold text-gray-500 uppercase">
-          <span class="col-span-2">Nombre</span><span>Pacto</span><span>Votos</span><span>Sexo</span>
+        <div class="grid grid-cols-8 gap-1 mb-2 text-xs font-semibold text-gray-500 uppercase">
+          <span class="col-span-2">Nombre</span><span>Pacto</span><span>Lote</span><span>Comunal</span><span>Votos</span><span>Sexo</span><span></span>
         </div>
-        <div id="ccr-candidatos-list" class="space-y-1 mb-3"></div>
-        <div class="grid grid-cols-5 gap-2 items-center">
-          <input id="ccr-nombre" type="text" placeholder="Nombre"
-            class="col-span-2 border rounded px-2 py-1 text-sm">
-          <select id="ccr-pacto-sel" class="border rounded px-2 py-1 text-sm">
-            <option value="">-- Pacto --</option>
+        <div id="ccr-candidatos-list" class="space-y-0.5 mb-3"></div>
+        <div class="relative mb-2">
+          <input id="ccr-nombre" type="text" placeholder="Buscar en padrón o escribir nombre..." autocomplete="off"
+            class="border rounded px-2 py-1 text-sm w-full">
+          <div id="ccr-ac-drop" class="hidden absolute left-0 right-0 bg-white border rounded shadow-lg z-20 max-h-48 overflow-y-auto text-sm"></div>
+        </div>
+        <div class="grid grid-cols-7 gap-1">
+          <select id="ccr-pacto-sel" class="border rounded px-1 py-1 text-sm">
+            <option value="">— Pacto —</option>
           </select>
-          <input id="ccr-votos" type="number" min="0" placeholder="Votos"
-            class="border rounded px-2 py-1 text-sm">
-          <select id="ccr-sexo" class="border rounded px-2 py-1 text-sm">
-            <option value="">Sexo</option>
+          <select id="ccr-lote-sel" class="border rounded px-1 py-1 text-sm">
+            <option value="">— Lote —</option>
+          </select>
+          <input id="ccr-comunal" type="text" placeholder="Comunal" class="border rounded px-1 py-1 text-sm">
+          <input id="ccr-votos" type="number" min="0" placeholder="Votos" class="border rounded px-1 py-1 text-sm">
+          <select id="ccr-sexo" class="border rounded px-1 py-1 text-sm">
             <option value="H">Hombre</option>
             <option value="M">Mujer</option>
           </select>
+          <button id="ccr-add-candidato" class="col-span-2 bg-gray-700 text-white px-2 py-1 rounded text-sm hover:bg-gray-800">
+            + Agregar (Enter)
+          </button>
         </div>
-        <button id="ccr-add-candidato"
-          class="mt-2 bg-gray-700 text-white px-4 py-1 rounded text-sm hover:bg-gray-800">
-          + Agregar Candidato
-        </button>
       </section>
 
-      <!-- Bloque 3: Resultados CCR -->
-      <section id="ccr-resultados" class="mb-6">
-        <div class="flex gap-3 mb-4">
-          <button id="ccr-calcular"
-            class="bg-red-700 text-white px-6 py-2 rounded font-semibold hover:bg-red-800">
-            Calcular esta región
+      <section class="mb-6">
+        <div class="flex gap-3 mb-4 flex-wrap">
+          <button id="ccr-calcular-est" class="bg-red-700 text-white px-5 py-2 rounded font-semibold hover:bg-red-800">
+            Calcular — Estimado
           </button>
-          <button id="ccr-calcular-todas"
-            class="bg-gray-600 text-white px-6 py-2 rounded font-semibold hover:bg-gray-700">
+          <button id="ccr-calcular-proy" class="bg-blue-700 text-white px-5 py-2 rounded font-semibold hover:bg-blue-800">
+            Calcular — Proyectado
+          </button>
+          <button id="ccr-calcular-todas" class="bg-gray-600 text-white px-5 py-2 rounded font-semibold hover:bg-gray-700">
             Ver resumen nacional CCR
           </button>
+          <span class="text-xs text-gray-400 self-center">Proyectado = lote × padrón comunal (4 votos/elector CCR)</span>
         </div>
         <div id="ccr-resultado-output" class="hidden"></div>
       </section>
     </div>
-
   </div>
 
+<script src="js/padron.js"></script>
 <script>
-// ── data.js ──────────────────────────────────────────────────────────────────
+// ── data ──────────────────────────────────────────────────────────────────────
 const REGIONES = [
-  { id: 'arica',       nombre: 'De Arica',                        cupos: 1, padron: 138  },
-  { id: 'tarapaca',    nombre: 'De Tarapacá',                     cupos: 1, padron: 144  },
-  { id: 'antofagasta', nombre: 'De Antofagasta',                  cupos: 2, padron: 233  },
-  { id: 'atacama',     nombre: 'De Atacama',                      cupos: 2, padron: 313  },
-  { id: 'coquimbo',    nombre: 'De Coquimbo',                     cupos: 1, padron: 128  },
-  { id: 'valparaiso',  nombre: 'De Valparaíso',                   cupos: 2, padron: 293  },
-  { id: 'rm',          nombre: 'Metropolitana de Santiago',        cupos: 7, padron: 2212 },
-  { id: 'ohiggins',    nombre: "Del Libertador B. O'Higgins",     cupos: 2, padron: 163  },
-  { id: 'maule',       nombre: 'Del Maule',                       cupos: 2, padron: 179  },
-  { id: 'nuble',       nombre: 'De Ñuble',                        cupos: 1, padron: 154  },
-  { id: 'biobio',      nombre: 'Del BioBío',                      cupos: 2, padron: 266  },
-  { id: 'araucania',   nombre: 'De La Araucanía',                 cupos: 2, padron: 196  },
-  { id: 'losrios',     nombre: 'De Los Ríos',                     cupos: 1, padron: 118  },
-  { id: 'loslagos',    nombre: 'De Los Lagos',                    cupos: 2, padron: 278  },
-  { id: 'aysen',       nombre: 'De Aysén',                        cupos: 1, padron: 29   },
-  { id: 'magallanes',  nombre: 'De Magallanes',                   cupos: 1, padron: 62   },
+  { id:'arica',       nombre:'De Arica',                        cupos:1, padron:138  },
+  { id:'tarapaca',    nombre:'De Tarapacá',                     cupos:1, padron:144  },
+  { id:'antofagasta', nombre:'De Antofagasta',                  cupos:2, padron:233  },
+  { id:'atacama',     nombre:'De Atacama',                      cupos:2, padron:313  },
+  { id:'coquimbo',    nombre:'De Coquimbo',                     cupos:1, padron:128  },
+  { id:'valparaiso',  nombre:'De Valparaíso',                   cupos:2, padron:293  },
+  { id:'rm',          nombre:'Metropolitana de Santiago',        cupos:7, padron:2212 },
+  { id:'ohiggins',    nombre:"Del Libertador B. O'Higgins",     cupos:2, padron:163  },
+  { id:'maule',       nombre:'Del Maule',                       cupos:2, padron:179  },
+  { id:'nuble',       nombre:'De Ñuble',                        cupos:1, padron:154  },
+  { id:'biobio',      nombre:'Del BioBío',                      cupos:2, padron:266  },
+  { id:'araucania',   nombre:'De La Araucanía',                 cupos:2, padron:196  },
+  { id:'losrios',     nombre:'De Los Ríos',                     cupos:1, padron:118  },
+  { id:'loslagos',    nombre:'De Los Lagos',                    cupos:2, padron:278  },
+  { id:'aysen',       nombre:'De Aysén',                        cupos:1, padron:29   },
+  { id:'magallanes',  nombre:'De Magallanes',                   cupos:1, padron:62   },
 ];
-
 const CCN_CUPOS = 11;
+const CCN_VOTOS_ELECTOR = 7;
+const CCR_VOTOS_ELECTOR = 4;
 
-function emptyContext() {
-  return { pactos: [], candidatos: [] };
-}
-
+function emptyContext() { return { pactos: [], candidatos: [] }; }
 const state = {
   ccn: emptyContext(),
   ccr: Object.fromEntries(REGIONES.map(r => [r.id, emptyContext()])),
   ccrRegionActiva: REGIONES[0].id,
 };
-
 function getContext(tipo, regionId) {
-  if (tipo === 'ccn') return state.ccn;
-  return state.ccr[regionId != null ? regionId : state.ccrRegionActiva];
+  return tipo === 'ccn' ? state.ccn : state.ccr[regionId != null ? regionId : state.ccrRegionActiva];
 }
-
 let nextId = 1;
 function newId() { return nextId++; }
 
-// ── Persistencia localStorage ─────────────────────────────────────────────────
-const STORAGE_KEY = 'simulador_js_2026';
-
+// ── localStorage ──────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'simulador_js_2026_v2';
 function saveState() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      ccn: state.ccn,
-      ccr: state.ccr,
-      nextId: nextId,
-    }));
-  } catch(e) {}
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ccn: state.ccn, ccr: state.ccr, nextId })); } catch(e) {}
 }
-
 function loadState() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    const saved = JSON.parse(raw);
-    if (saved.ccn)    state.ccn = saved.ccn;
-    if (saved.ccr)    Object.assign(state.ccr, saved.ccr);
-    if (saved.nextId) nextId = saved.nextId;
+    const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    if (!s) return;
+    if (s.ccn) state.ccn = s.ccn;
+    if (s.ccr) Object.assign(state.ccr, s.ccr);
+    if (s.nextId) nextId = s.nextId;
   } catch(e) {}
 }
-
 function clearState() {
   if (!confirm('¿Borrar todos los datos ingresados?')) return;
   localStorage.removeItem(STORAGE_KEY);
   location.reload();
 }
 
-// ── dhondt.js ─────────────────────────────────────────────────────────────────
+// ── dhondt ────────────────────────────────────────────────────────────────────
 function runDhondt(candidatos, pactos, N) {
-  const advertencias = [];
-
-  const votosPorPacto = {};
-  for (const p of pactos) votosPorPacto[p] = 0;
-  for (const c of candidatos) {
-    if (votosPorPacto[c.pacto] !== undefined) votosPorPacto[c.pacto] += c.votos;
-  }
-
-  const totalVotos = Object.values(votosPorPacto).reduce((a, b) => a + b, 0);
-  if (totalVotos === 0) {
-    return {
-      electos: [], noElectos: candidatos.map(c => ({...c, estado:'no_electo'})),
-      cuposPorPacto: Object.fromEntries(pactos.map(p => [p, 0])),
-      cifraRepartidora: 0, cocientes: {}, advertencias: [{ tipo: 'votos_cero' }], listaUnica: false
-    };
-  }
+  const adv = [];
+  const vpp = {};
+  for (const p of pactos) vpp[p] = 0;
+  for (const c of candidatos) { if (vpp[c.pacto] !== undefined) vpp[c.pacto] += c.votos; }
+  const total = Object.values(vpp).reduce((a,b) => a+b, 0);
+  if (total === 0) return { electos:[], noElectos: candidatos.map(c=>({...c,estado:'no_electo'})),
+    cuposPorPacto: Object.fromEntries(pactos.map(p=>[p,0])), cifraRepartidora:0, cocientes:{},
+    advertencias:[{tipo:'votos_cero'}], listaUnica:false };
 
   const listaUnica = pactos.length === 1;
-
   const cocientes = {};
-  for (const p of pactos) {
-    cocientes[p] = [];
-    for (let k = 1; k <= N; k++) {
-      cocientes[p].push(votosPorPacto[p] / k);
-    }
-  }
+  for (const p of pactos) { cocientes[p]=[]; for(let k=1;k<=N;k++) cocientes[p].push(vpp[p]/k); }
 
-  let cuposPorPacto;
-  let cifraRepartidora;
-
+  let cpp, cr;
   if (listaUnica) {
-    cuposPorPacto = {};
-    cuposPorPacto[pactos[0]] = N;
-    cifraRepartidora = null;
+    cpp = {}; cpp[pactos[0]] = N; cr = null;
   } else {
-    const todosLosCocientes = pactos.flatMap(p => cocientes[p]);
-    todosLosCocientes.sort((a, b) => b - a);
-    cifraRepartidora = todosLosCocientes[N - 1];
-
-    cuposPorPacto = {};
-    for (const p of pactos) {
-      cuposPorPacto[p] = Math.floor(votosPorPacto[p] / cifraRepartidora);
-    }
-
-    let sumaActual = Object.values(cuposPorPacto).reduce((a, b) => a + b, 0);
-    while (sumaActual < N) {
-      const candidatosCupoExtra = pactos.filter(p =>
-        Math.abs(votosPorPacto[p] / (cuposPorPacto[p] + 1) - cifraRepartidora) < 1e-9
-      );
-      if (candidatosCupoExtra.length === 0) break;
-
-      candidatosCupoExtra.sort((a, b) => votosPorPacto[b] - votosPorPacto[a]);
-
-      if (candidatosCupoExtra.length > 1 &&
-          votosPorPacto[candidatosCupoExtra[0]] === votosPorPacto[candidatosCupoExtra[1]]) {
-        const idx = Math.floor(Math.random() * candidatosCupoExtra.length);
-        const ganador = candidatosCupoExtra[idx];
-        cuposPorPacto[ganador]++;
-        advertencias.push({ tipo: 'sorteo_dhondt', cupo: sumaActual + 1, pactoGanador: ganador });
-      } else {
-        cuposPorPacto[candidatosCupoExtra[0]]++;
-      }
-      sumaActual++;
+    const all = pactos.flatMap(p => cocientes[p]).sort((a,b)=>b-a);
+    cr = all[N-1];
+    cpp = {};
+    for (const p of pactos) cpp[p] = Math.floor(vpp[p]/cr);
+    let suma = Object.values(cpp).reduce((a,b)=>a+b,0);
+    while (suma < N) {
+      const cands = pactos.filter(p => Math.abs(vpp[p]/(cpp[p]+1)-cr)<1e-9);
+      if (!cands.length) break;
+      cands.sort((a,b)=>vpp[b]-vpp[a]);
+      if (cands.length>1 && vpp[cands[0]]===vpp[cands[1]]) {
+        const g = cands[Math.floor(Math.random()*cands.length)];
+        cpp[g]++; adv.push({tipo:'sorteo_dhondt',cupo:suma+1,pactoGanador:g});
+      } else { cpp[cands[0]]++; }
+      suma++;
     }
   }
-
-  const electos = [];
-  const noElectos = [];
-
+  const electos=[], noElectos=[];
   for (const p of pactos) {
-    const del_pacto = candidatos
-      .filter(c => c.pacto === p)
-      .sort((a, b) => b.votos - a.votos);
-    const nCupos = cuposPorPacto[p] || 0;
-
-    for (let i = 0; i < del_pacto.length; i++) {
-      const c = { ...del_pacto[i], coeficiente: null, estado: null, sorteo: false };
-      if (i < nCupos) {
-        if (i === nCupos - 1 && del_pacto[i + 1] &&
-            del_pacto[i].votos === del_pacto[i + 1].votos) {
-          advertencias.push({ tipo: 'sorteo_individual', pacto: p, votos: del_pacto[i].votos });
-          c.sorteo = true;
-          c.estado = 'sorteo';
-        } else {
-          c.estado = 'electo';
-        }
+    const dp = candidatos.filter(c=>c.pacto===p).sort((a,b)=>b.votos-a.votos);
+    const nc = cpp[p]||0;
+    for (let i=0;i<dp.length;i++) {
+      const c={...dp[i],estado:null,sorteo:false};
+      if (i<nc) {
+        if (i===nc-1 && dp[i+1] && dp[i].votos===dp[i+1].votos) { c.sorteo=true; c.estado='sorteo'; adv.push({tipo:'sorteo_individual',pacto:p,votos:dp[i].votos}); }
+        else c.estado='electo';
         electos.push(c);
-      } else {
-        c.estado = 'no_electo';
-        noElectos.push(c);
-      }
+      } else { c.estado='no_electo'; noElectos.push(c); }
     }
   }
-
-  return { electos, noElectos, cuposPorPacto, cifraRepartidora: cifraRepartidora || null, cocientes, advertencias, listaUnica };
+  return {electos,noElectos,cuposPorPacto:cpp,cifraRepartidora:cr,cocientes,advertencias:adv,listaUnica};
 }
 
-// ── parity.js ─────────────────────────────────────────────────────────────────
+// ── parity ────────────────────────────────────────────────────────────────────
 function aplicarParidadCCN(electos, noElectos) {
-  const N = electos.length;
-  const minGenero = Math.ceil(N * 0.4);
-
-  let electosActuales = electos.map(c => ({ ...c }));
-  let noElectosActuales = noElectos.map(c => ({ ...c }));
-  const advertencias = [];
-  let corregido = false;
-
-  const contarGenero = (arr, sexo) => arr.filter(c => c.sexo === sexo).length;
-
-  for (let iter = 0; iter < N * 2; iter++) {
-    const nH = contarGenero(electosActuales, 'H');
-    const nM = contarGenero(electosActuales, 'M');
-    if (nH >= minGenero && nM >= minGenero) break;
-
-    const generoSub = nH < nM ? 'H' : 'M';
-    const generoSobre = generoSub === 'H' ? 'M' : 'H';
-
-    const pactos = [...new Set(electosActuales.map(c => c.pacto))];
-    const deficits = pactos.map(p => {
-      const delPacto = electosActuales.filter(c => c.pacto === p);
-      const nSub = delPacto.filter(c => c.sexo === generoSub).length;
-      const nTot = delPacto.length;
-      return { pacto: p, deficit: Math.max(0, Math.ceil(nTot * 0.4) - nSub) };
-    });
-    deficits.sort((a, b) => b.deficit - a.deficit);
-
-    let reemplazado = false;
-    for (const { pacto } of deficits) {
-      const salientes = electosActuales
-        .filter(c => c.pacto === pacto && c.sexo === generoSobre)
-        .sort((a, b) => a.votos - b.votos);
-      const entrantes = noElectosActuales
-        .filter(c => c.pacto === pacto && c.sexo === generoSub)
-        .sort((a, b) => b.votos - a.votos);
-
-      if (salientes.length > 0 && entrantes.length > 0) {
-        const saliente = salientes[0];
-        const entrante = entrantes[0];
-        electosActuales = electosActuales.filter(c => c.id !== saliente.id);
-        noElectosActuales = noElectosActuales.filter(c => c.id !== entrante.id);
-        electosActuales.push({ ...entrante, estado: 'paridad' });
-        noElectosActuales.push({ ...saliente, estado: 'no_electo' });
-        corregido = true;
-        reemplazado = true;
-        break;
+  const N=electos.length, min=Math.ceil(N*0.4);
+  let ea=electos.map(c=>({...c})), na=noElectos.map(c=>({...c})), corregido=false;
+  const cnt=(a,s)=>a.filter(c=>c.sexo===s).length;
+  for(let i=0;i<N*2;i++){
+    const nH=cnt(ea,'H'),nM=cnt(ea,'M');
+    if(nH>=min&&nM>=min) break;
+    const sub=nH<nM?'H':'M', sobre=sub==='H'?'M':'H';
+    const pactos=[...new Set(ea.map(c=>c.pacto))];
+    const defs=pactos.map(p=>{const d=ea.filter(c=>c.pacto===p);return{pacto:p,deficit:Math.max(0,Math.ceil(d.length*0.4)-d.filter(c=>c.sexo===sub).length)};}).sort((a,b)=>b.deficit-a.deficit);
+    let ok=false;
+    for(const {pacto} of defs){
+      const sal=ea.filter(c=>c.pacto===pacto&&c.sexo===sobre).sort((a,b)=>a.votos-b.votos);
+      const ent=na.filter(c=>c.pacto===pacto&&c.sexo===sub).sort((a,b)=>b.votos-a.votos);
+      if(sal.length&&ent.length){
+        ea=ea.filter(c=>c.id!==sal[0].id); na=na.filter(c=>c.id!==ent[0].id);
+        ea.push({...ent[0],estado:'paridad'}); na.push({...sal[0],estado:'no_electo'});
+        corregido=true; ok=true; break;
       }
     }
-
-    if (!reemplazado) {
-      return { electos: electosActuales, noElectos: noElectosActuales, corregido, imposible: true, advertencias };
-    }
+    if(!ok) return {electos:ea,noElectos:na,corregido,imposible:true,advertencias:[]};
   }
-
-  return { electos: electosActuales, noElectos: noElectosActuales, corregido, imposible: false, advertencias };
+  return {electos:ea,noElectos:na,corregido,imposible:false,advertencias:[]};
 }
 
 function aplicarParidadCCR(electos, noElectos, padron, cupos) {
-  const minGenero = Math.ceil(cupos * 0.4);
-  const conCoef = arr => arr.map(c => ({ ...c, coeficiente: c.votos / padron }));
-
-  let electosActuales = conCoef(electos);
-  let noElectosActuales = conCoef(noElectos);
-  let corregido = false;
-
-  const contarGenero = (arr, sexo) => arr.filter(c => c.sexo === sexo).length;
-
-  for (let iter = 0; iter < cupos * 2; iter++) {
-    const nH = contarGenero(electosActuales, 'H');
-    const nM = contarGenero(electosActuales, 'M');
-    if (nH >= minGenero && nM >= minGenero) break;
-
-    const generoSub = nH < nM ? 'H' : 'M';
-    const generoSobre = generoSub === 'H' ? 'M' : 'H';
-
-    const salientes = electosActuales
-      .filter(c => c.sexo === generoSobre)
-      .sort((a, b) => a.coeficiente - b.coeficiente);
-    if (salientes.length === 0) break;
-    const saliente = salientes[0];
-
-    const entrantes = noElectosActuales
-      .filter(c => c.pacto === saliente.pacto && c.sexo === generoSub)
-      .sort((a, b) => b.coeficiente - a.coeficiente);
-
-    if (entrantes.length > 0) {
-      const entrante = entrantes[0];
-      electosActuales = electosActuales.filter(c => c.id !== saliente.id);
-      noElectosActuales = noElectosActuales.filter(c => c.id !== entrante.id);
-      electosActuales.push({ ...entrante, estado: 'paridad' });
-      noElectosActuales.push({ ...saliente, estado: 'no_electo' });
-      corregido = true;
+  const min=Math.ceil(cupos*0.4);
+  const coef=arr=>arr.map(c=>({...c,coeficiente:c.votos/padron}));
+  let ea=coef(electos),na=coef(noElectos),corregido=false;
+  const cnt=(a,s)=>a.filter(c=>c.sexo===s).length;
+  for(let i=0;i<cupos*2;i++){
+    const nH=cnt(ea,'H'),nM=cnt(ea,'M');
+    if(nH>=min&&nM>=min) break;
+    const sub=nH<nM?'H':'M',sobre=sub==='H'?'M':'H';
+    const sal=ea.filter(c=>c.sexo===sobre).sort((a,b)=>a.coeficiente-b.coeficiente);
+    if(!sal.length) break;
+    const s=sal[0];
+    const ent=na.filter(c=>c.pacto===s.pacto&&c.sexo===sub).sort((a,b)=>b.coeficiente-a.coeficiente);
+    if(ent.length){
+      ea=ea.filter(c=>c.id!==s.id); na=na.filter(c=>c.id!==ent[0].id);
+      ea.push({...ent[0],estado:'paridad'}); na.push({...s,estado:'no_electo'}); corregido=true;
     } else {
-      const otrasPactos = [...new Set(
-        electosActuales.filter(c => c.sexo === generoSobre && c.pacto !== saliente.pacto).map(c => c.pacto)
-      )];
-      let encontrado = false;
-      for (const p of otrasPactos) {
-        const e = noElectosActuales
-          .filter(c => c.pacto === p && c.sexo === generoSub)
-          .sort((a, b) => b.coeficiente - a.coeficiente);
-        const sal = electosActuales
-          .filter(c => c.pacto === p && c.sexo === generoSobre)
-          .sort((a, b) => a.coeficiente - b.coeficiente);
-        if (e.length > 0 && sal.length > 0) {
-          electosActuales = electosActuales.filter(c => c.id !== sal[0].id);
-          noElectosActuales = noElectosActuales.filter(c => c.id !== e[0].id);
-          electosActuales.push({ ...e[0], estado: 'paridad' });
-          noElectosActuales.push({ ...sal[0], estado: 'no_electo' });
-          corregido = true;
-          encontrado = true;
-          break;
+      const otras=[...new Set(ea.filter(c=>c.sexo===sobre&&c.pacto!==s.pacto).map(c=>c.pacto))];
+      let found=false;
+      for(const p of otras){
+        const e=na.filter(c=>c.pacto===p&&c.sexo===sub).sort((a,b)=>b.coeficiente-a.coeficiente);
+        const s2=ea.filter(c=>c.pacto===p&&c.sexo===sobre).sort((a,b)=>a.coeficiente-b.coeficiente);
+        if(e.length&&s2.length){
+          ea=ea.filter(c=>c.id!==s2[0].id); na=na.filter(c=>c.id!==e[0].id);
+          ea.push({...e[0],estado:'paridad'}); na.push({...s2[0],estado:'no_electo'}); corregido=true; found=true; break;
         }
       }
-      if (!encontrado) {
-        return { electos: electosActuales, noElectos: noElectosActuales, corregido, imposible: true };
-      }
+      if(!found) return {electos:ea,noElectos:na,corregido,imposible:true};
     }
   }
-
-  return { electos: electosActuales, noElectos: noElectosActuales, corregido, imposible: false };
+  return {electos:ea,noElectos:na,corregido,imposible:false};
 }
 
-// ── ui.js ─────────────────────────────────────────────────────────────────────
+// ── proyectado ────────────────────────────────────────────────────────────────
+function getEstimadoRegion(regionId) {
+  return (typeof ESTIMADO_LOTES !== 'undefined' && ESTIMADO_LOTES[regionId]) || {};
+}
+function getComunalPadron(regionId, comunal) {
+  if (typeof COMUNAL_PADRON === 'undefined') return 0;
+  return ((COMUNAL_PADRON[regionId] || {})[comunal.toUpperCase()]) || 0;
+}
+function getRegionPadronTotal(regionId) {
+  if (typeof COMUNAL_PADRON === 'undefined') return 0;
+  return Object.values(COMUNAL_PADRON[regionId] || {}).reduce((a,b)=>a+b, 0);
+}
+
+function proyectarVotosCCR(c, regionId) {
+  if (!c.lote || c.lote === '—' || !c.comunal) return 0;
+  const loteVotos = getEstimadoRegion(regionId)[c.lote] || 0;
+  const comunalN  = getComunalPadron(regionId, c.comunal);
+  const regionN   = getRegionPadronTotal(regionId);
+  if (!regionN) return 0;
+  // Votos proyectados = lote_total_región × comunal_share × CCR_VOTOS_ELECTOR (proxy)
+  return Math.round(loteVotos * (comunalN / regionN));
+}
+
+function proyectarVotosCCN(c) {
+  if (!c.lote || c.lote === '—' || !c.comunal) return 0;
+  if (typeof ESTIMADO_LOTES === 'undefined' || typeof COMUNAL_PADRON === 'undefined') return 0;
+  let nationalLote = 0, comunalN = 0, nationalPadron = 0;
+  for (const lotes of Object.values(ESTIMADO_LOTES)) nationalLote += lotes[c.lote] || 0;
+  for (const [rid, comunas] of Object.entries(COMUNAL_PADRON)) {
+    nationalPadron += Object.values(comunas).reduce((a,b)=>a+b, 0);
+    comunalN += (comunas[c.comunal.toUpperCase()]) || 0;
+  }
+  if (!nationalPadron) return 0;
+  return Math.round(nationalLote * (comunalN / nationalPadron));
+}
+
+// ── lote select helpers ───────────────────────────────────────────────────────
+function buildLoteOptions(selId, current) {
+  const sel = document.getElementById(selId);
+  const lotes = typeof LOTES !== 'undefined' ? LOTES : [];
+  sel.innerHTML = '<option value="">— Lote —</option>' +
+    lotes.map(l => '<option value="'+l+'"'+(l===current?' selected':'')+'>'+l+'</option>').join('');
+}
+
+// ── autocomplete ──────────────────────────────────────────────────────────────
+function setupAutocompleteCCN() {
+  setupAC('ccn-nombre','ccn-ac-drop', null, function(p){
+    document.getElementById('ccn-comunal').value = p.comunal;
+    document.getElementById('ccn-sexo').value    = p.sexo;
+  });
+}
+function setupAutocompleteCCR() {
+  setupAC('ccr-nombre','ccr-ac-drop', function(){ return state.ccrRegionActiva; }, function(p){
+    document.getElementById('ccr-comunal').value = p.comunal;
+    document.getElementById('ccr-sexo').value    = p.sexo;
+  });
+}
+
+function setupAC(inputId, dropId, getRegion, onSelect) {
+  const input = document.getElementById(inputId);
+  const drop  = document.getElementById(dropId);
+  if (!input || !drop) return;
+  input.addEventListener('input', function() {
+    const q = this.value.trim().toUpperCase();
+    if (q.length < 2 || typeof PADRON_LOOKUP === 'undefined') { drop.classList.add('hidden'); return; }
+    const rid = getRegion ? getRegion() : null;
+    const pool = rid ? PADRON_LOOKUP.filter(p => p.region === rid) : PADRON_LOOKUP;
+    const matches = pool.filter(p => p.nombre.toUpperCase().includes(q)).slice(0, 12);
+    if (!matches.length) { drop.classList.add('hidden'); return; }
+    drop.innerHTML = matches.map(p =>
+      '<div class="px-3 py-1 hover:bg-blue-50 cursor-pointer border-b last:border-0" data-nombre="'+p.nombre+'" data-comunal="'+p.comunal+'" data-sexo="'+p.sexo+'">' +
+        '<span class="font-medium">'+p.nombre+'</span> <span class="text-gray-400 text-xs">('+p.comunal+')</span>' +
+      '</div>'
+    ).join('');
+    drop.classList.remove('hidden');
+    drop.querySelectorAll('div').forEach(function(div) {
+      div.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        input.value = div.dataset.nombre;
+        drop.classList.add('hidden');
+        onSelect({ nombre: div.dataset.nombre, comunal: div.dataset.comunal, sexo: div.dataset.sexo });
+      });
+    });
+  });
+  input.addEventListener('blur', function() { setTimeout(function(){ drop.classList.add('hidden'); }, 150); });
+}
+
+// ── render helpers ────────────────────────────────────────────────────────────
 function renderBanner(texto, tipo) {
-  tipo = tipo || 'warn';
   const div = document.createElement('div');
-  div.className = 'banner-' + tipo;
+  div.className = 'banner-' + (tipo||'warn');
   div.textContent = texto;
   return div;
 }
-
 function estadoBadge(estado) {
-  const mapa = {
-    electo:  '<span class="badge-electo">✓ Electo</span>',
-    paridad: '<span class="badge-paridad">★ Paridad</span>',
-    sorteo:  '<span class="badge-sorteo">🎲 Sorteo</span>',
-  };
-  return mapa[estado] || '';
+  return {electo:'<span class="badge-electo">✓ Electo</span>',paridad:'<span class="badge-paridad">★ Paridad</span>',sorteo:'<span class="badge-sorteo">🎲 Sorteo</span>'}[estado]||'';
 }
-
-function renderCCNPactos() {
-  const ctx = getContext('ccn');
-  const lista = document.getElementById('ccn-pactos-list');
-  const sel   = document.getElementById('ccn-pacto-sel');
-
-  lista.innerHTML = ctx.pactos.map(p =>
-    '<span class="inline-flex items-center gap-1 bg-gray-100 border rounded px-2 py-1 text-sm">' +
-      p +
-      '<button class="text-red-500 hover:text-red-700 font-bold"' +
-        ' onclick="window._removeCCNPacto(\'' + p + '\')"' +
-        (ctx.candidatos.some(c => c.pacto === p) ? ' disabled title="Tiene candidatos"' : '') +
-      '>×</button>' +
-    '</span>'
-  ).join('');
-
-  sel.innerHTML = '<option value="">-- Pacto --</option>' +
-    ctx.pactos.map(p => '<option value="' + p + '">' + p + '</option>').join('');
-}
-
-function addCCNPacto(nombre) {
-  const ctx = getContext('ccn');
-  if (!nombre.trim() || ctx.pactos.includes(nombre.trim())) return false;
-  ctx.pactos.push(nombre.trim());
-  renderCCNPactos();
-  saveState();
-  return true;
-}
-
-function removeCCNPacto(nombre) {
-  const ctx = getContext('ccn');
-  if (ctx.candidatos.some(c => c.pacto === nombre)) return;
-  ctx.pactos = ctx.pactos.filter(p => p !== nombre);
-  renderCCNPactos();
-  saveState();
-}
-
-function filaViewCCN(c, ctx) {
-  return '<div class="grid grid-cols-5 gap-2 text-sm items-center border-b py-1 cursor-pointer hover:bg-gray-50 select-none"' +
-    ' data-id="' + c.id + '" ondblclick="window._editCCNCandidato(' + c.id + ')" title="Doble clic para editar">' +
-    '<span class="col-span-2">' + c.nombre + '</span>' +
-    '<span>' + c.pacto + '</span>' +
-    '<span>' + c.votos + '</span>' +
-    '<span class="flex items-center gap-1">' +
-      (c.sexo === 'H' ? 'Hombre' : 'Mujer') +
-      '<button class="ml-2 text-red-400 hover:text-red-600"' +
-        ' onclick="event.stopPropagation(); window._removeCCNCandidato(' + c.id + ')">×</button>' +
-    '</span>' +
-  '</div>';
-}
-
-function filaEditCCN(c, ctx) {
-  var pactoOpts = ctx.pactos.map(p => '<option value="' + p + '"' + (c.pacto === p ? ' selected' : '') + '>' + p + '</option>').join('');
-  return '<div class="grid grid-cols-5 gap-2 text-sm items-center border-b py-1 bg-blue-50" data-id="' + c.id + '">' +
-    '<input class="col-span-2 border rounded px-1 py-0.5" id="edit-ccn-nombre-' + c.id + '" value="' + c.nombre + '">' +
-    '<select class="border rounded px-1 py-0.5" id="edit-ccn-pacto-' + c.id + '">' + pactoOpts + '</select>' +
-    '<input type="number" min="0" class="border rounded px-1 py-0.5" id="edit-ccn-votos-' + c.id + '" value="' + c.votos + '">' +
-    '<span class="flex items-center gap-1">' +
-      '<select class="border rounded px-1 py-0.5" id="edit-ccn-sexo-' + c.id + '">' +
-        '<option value="H"' + (c.sexo === 'H' ? ' selected' : '') + '>H</option>' +
-        '<option value="M"' + (c.sexo === 'M' ? ' selected' : '') + '>M</option>' +
-      '</select>' +
-      '<button class="ml-1 text-green-600 hover:text-green-800 font-bold" title="Guardar"' +
-        ' onclick="window._saveCCNCandidato(' + c.id + ')">✓</button>' +
-      '<button class="ml-1 text-gray-400 hover:text-gray-600"' +
-        ' onclick="renderCCNCandidatos()">✕</button>' +
-    '</span>' +
-  '</div>';
-}
-
-function renderCCNCandidatos() {
-  const ctx = getContext('ccn');
-  const lista = document.getElementById('ccn-candidatos-list');
-  if (ctx.candidatos.length === 0) {
-    lista.innerHTML = '<p class="text-sm text-gray-400">Sin candidatos aún.</p>';
-    return;
-  }
-  lista.innerHTML = ctx.candidatos.map(c => filaViewCCN(c, ctx)).join('');
-}
-
-window._editCCNCandidato = function(id) {
-  const ctx = getContext('ccn');
-  const c = ctx.candidatos.find(x => x.id === id);
-  const row = document.querySelector('#ccn-candidatos-list [data-id="' + id + '"]');
-  if (row) row.outerHTML = filaEditCCN(c, ctx);
-};
-
-window._saveCCNCandidato = function(id) {
-  const ctx = getContext('ccn');
-  const c = ctx.candidatos.find(x => x.id === id);
-  const nombre = document.getElementById('edit-ccn-nombre-' + id).value.trim();
-  const pacto  = document.getElementById('edit-ccn-pacto-'  + id).value;
-  const votos  = parseInt(document.getElementById('edit-ccn-votos-' + id).value);
-  const sexo   = document.getElementById('edit-ccn-sexo-'  + id).value;
-  if (!nombre || !pacto || isNaN(votos)) return;
-  c.nombre = nombre; c.pacto = pacto; c.votos = votos; c.sexo = sexo;
-  renderCCNCandidatos();
-  document.getElementById('ccn-resultado-output').classList.add('hidden');
-  saveState();
-};
-
-function addCCNCandidato(datos) {
-  const { nombre, pacto, votos, sexo } = datos;
-  const ctx = getContext('ccn');
-  ctx.candidatos.push({
-    id: newId(),
-    nombre: nombre.trim() || '(sin nombre)',
-    pacto: pacto || '—',
-    votos: parseInt(votos) || 0,
-    sexo: sexo || 'H',
-  });
-  renderCCNCandidatos();
-  document.getElementById('ccn-resultado-output').classList.add('hidden');
-  saveState();
-  return true;
-}
-
-function removeCCNCandidato(id) {
-  const ctx = getContext('ccn');
-  ctx.candidatos = ctx.candidatos.filter(c => c.id !== id);
-  renderCCNCandidatos();
-  saveState();
-}
-
-function calcularCCN() {
-  const ctx = getContext('ccn');
-  const output = document.getElementById('ccn-resultado-output');
-  output.innerHTML = '';
-  output.classList.remove('hidden');
-
-  if (ctx.pactos.length === 0 || ctx.candidatos.length === 0) {
-    output.appendChild(renderBanner('Ingresa al menos un pacto y un candidato antes de calcular.', 'err'));
-    return;
-  }
-  if (ctx.candidatos.some(c => c.nombre === '(sin nombre)')) {
-    output.appendChild(renderBanner('Falta nombre de candidato — edita las filas marcadas antes de calcular.', 'err'));
-    return;
-  }
-
-  const dhondt = runDhondt(ctx.candidatos, ctx.pactos, CCN_CUPOS);
-
-  if (dhondt.listaUnica) {
-    output.appendChild(renderBanner('Lista única — se aplica conteo directo (art. 74)', 'warn'));
-  }
-
-  dhondt.advertencias.forEach(function(adv) {
-    if (adv.tipo === 'sorteo_dhondt') {
-      output.appendChild(renderBanner('⚠ Empate en cifra repartidora — se requiere sorteo para el cupo N°' + adv.cupo + '. Simulación asignó a: ' + adv.pactoGanador, 'warn'));
-    }
-    if (adv.tipo === 'sorteo_individual') {
-      output.appendChild(renderBanner('⚠ Empate en votos individuales en pacto ' + adv.pacto + ' (' + adv.votos + ' votos) — se requiere sorteo', 'warn'));
-    }
-  });
-
-  if (!dhondt.listaUnica) {
-    output.appendChild(renderDhondtTable(dhondt, ctx.pactos, CCN_CUPOS));
-  }
-
-  const paridad = aplicarParidadCCN(dhondt.electos, dhondt.noElectos);
-
-  if (paridad.imposible) {
-    output.appendChild(renderBanner('⚠ No es posible alcanzar la paridad con los candidatos ingresados.', 'err'));
-  } else if (paridad.corregido) {
-    output.appendChild(renderBanner('Se aplicó corrección de paridad (art. 76–77a)', 'warn'));
-  }
-
-  output.appendChild(renderElectos(paridad.electos, false));
-  output.appendChild(renderIndicadorParidad(paridad.electos, CCN_CUPOS));
-}
-
 function renderDhondtTable(dhondt, pactos, N) {
-  const { cocientes, cuposPorPacto, cifraRepartidora } = dhondt;
-  const ganadores = new Set();
-
-  const todos = pactos.flatMap(p =>
-    cocientes[p].map((v, i) => ({ p, k: i + 1, v }))
-  ).sort((a, b) => b.v - a.v).slice(0, N);
-  todos.forEach(function(x) { ganadores.add(x.p + '-' + x.k); });
-
-  const wrap = document.createElement('div');
-  wrap.className = 'overflow-x-auto mb-4';
-  wrap.innerHTML =
-    '<h3 class="font-semibold mb-2">Tabla D\'Hondt</h3>' +
-    '<table class="text-sm border-collapse w-full">' +
-      '<thead><tr class="bg-gray-100">' +
-        '<th class="border px-2 py-1 text-left">Pacto</th>' +
-        '<th class="border px-2 py-1">Total votos</th>' +
-        Array.from({length: N}, (_, i) => '<th class="border px-2 py-1">÷' + (i+1) + '</th>').join('') +
-        '<th class="border px-2 py-1">Cupos</th>' +
-      '</tr></thead>' +
-      '<tbody>' +
-        pactos.map(p =>
-          '<tr>' +
-            '<td class="border px-2 py-1 font-medium">' + p + '</td>' +
-            '<td class="border px-2 py-1 text-center">' + (cocientes[p][0] * 1) + '</td>' +
-            cocientes[p].map((v, i) =>
-              '<td class="border px-2 py-1 text-center ' + (ganadores.has(p + '-' + (i+1)) ? 'dhondt-winner' : '') + '">' +
-                v.toFixed(1) +
-              '</td>'
-            ).join('') +
-            '<td class="border px-2 py-1 text-center font-bold">' + (cuposPorPacto[p] || 0) + '</td>' +
-          '</tr>'
-        ).join('') +
-      '</tbody>' +
-    '</table>' +
-    '<p class="text-xs text-gray-400 mt-1">Cifra repartidora: ' + (cifraRepartidora ? cifraRepartidora.toFixed(2) : '—') + '</p>';
+  const {cocientes,cuposPorPacto,cifraRepartidora}=dhondt;
+  const ganadores=new Set();
+  pactos.flatMap(p=>cocientes[p].map((v,i)=>({p,k:i+1,v}))).sort((a,b)=>b.v-a.v).slice(0,N).forEach(x=>ganadores.add(x.p+'-'+x.k));
+  const wrap=document.createElement('div');
+  wrap.className='overflow-x-auto mb-4';
+  wrap.innerHTML='<h3 class="font-semibold mb-2">Tabla D\'Hondt</h3>'+
+    '<table class="text-sm border-collapse w-full"><thead><tr class="bg-gray-100">'+
+    '<th class="border px-2 py-1 text-left">Pacto</th><th class="border px-2 py-1">Votos</th>'+
+    Array.from({length:N},(_,i)=>'<th class="border px-2 py-1">÷'+(i+1)+'</th>').join('')+
+    '<th class="border px-2 py-1">Cupos</th></tr></thead><tbody>'+
+    pactos.map(p=>'<tr><td class="border px-2 py-1 font-medium">'+p+'</td><td class="border px-2 py-1 text-center">'+(cocientes[p][0]*1)+'</td>'+
+      cocientes[p].map((v,i)=>'<td class="border px-2 py-1 text-center '+(ganadores.has(p+'-'+(i+1))?'dhondt-winner':'')+'">'+(v.toFixed(1))+'</td>').join('')+
+      '<td class="border px-2 py-1 text-center font-bold">'+(cuposPorPacto[p]||0)+'</td></tr>').join('')+
+    '</tbody></table><p class="text-xs text-gray-400 mt-1">Cifra repartidora: '+(cifraRepartidora?cifraRepartidora.toFixed(2):'—')+'</p>';
   return wrap;
 }
-
 function renderElectos(electos, mostrarCoef) {
-  const wrap = document.createElement('div');
-  wrap.className = 'mb-4';
-  wrap.innerHTML =
-    '<h3 class="font-semibold mb-2">Candidatos Electos</h3>' +
-    '<table class="text-sm border-collapse w-full">' +
-      '<thead><tr class="bg-gray-100">' +
-        '<th class="border px-2 py-1">#</th>' +
-        '<th class="border px-2 py-1 text-left">Nombre</th>' +
-        '<th class="border px-2 py-1">Pacto</th>' +
-        '<th class="border px-2 py-1">Votos</th>' +
-        '<th class="border px-2 py-1">Sexo</th>' +
-        (mostrarCoef ? '<th class="border px-2 py-1">Coef.</th>' : '') +
-        '<th class="border px-2 py-1">Estado</th>' +
-      '</tr></thead>' +
-      '<tbody>' +
-        electos.map(function(c, i) {
-          return '<tr class="' + (c.estado === 'paridad' ? 'bg-yellow-50' : '') + '">' +
-            '<td class="border px-2 py-1 text-center">' + (i+1) + '</td>' +
-            '<td class="border px-2 py-1">' + c.nombre + '</td>' +
-            '<td class="border px-2 py-1 text-center">' + c.pacto + '</td>' +
-            '<td class="border px-2 py-1 text-center">' + c.votos + '</td>' +
-            '<td class="border px-2 py-1 text-center">' + (c.sexo === 'H' ? 'Hombre' : 'Mujer') + '</td>' +
-            (mostrarCoef ? '<td class="border px-2 py-1 text-center">' + (c.coeficiente ? c.coeficiente.toFixed(4) : '—') + '</td>' : '') +
-            '<td class="border px-2 py-1 text-center">' + estadoBadge(c.estado) + '</td>' +
-          '</tr>';
-        }).join('') +
-      '</tbody>' +
-    '</table>';
+  const wrap=document.createElement('div');
+  wrap.className='mb-4';
+  wrap.innerHTML='<h3 class="font-semibold mb-2">Candidatos Electos</h3>'+
+    '<table class="text-sm border-collapse w-full"><thead><tr class="bg-gray-100">'+
+    '<th class="border px-2 py-1">#</th><th class="border px-2 py-1 text-left">Nombre</th>'+
+    '<th class="border px-2 py-1">Pacto</th><th class="border px-2 py-1">Lote</th>'+
+    '<th class="border px-2 py-1">Comunal</th><th class="border px-2 py-1">Votos</th>'+
+    '<th class="border px-2 py-1">Sexo</th>'+(mostrarCoef?'<th class="border px-2 py-1">Coef.</th>':'')+
+    '<th class="border px-2 py-1">Estado</th></tr></thead><tbody>'+
+    electos.map(function(c,i){
+      return '<tr class="'+(c.estado==='paridad'?'bg-yellow-50':'')+'">' +
+        '<td class="border px-2 py-1 text-center">'+(i+1)+'</td>'+
+        '<td class="border px-2 py-1">'+c.nombre+'</td>'+
+        '<td class="border px-2 py-1 text-center">'+(c.pacto||'')+'</td>'+
+        '<td class="border px-2 py-1 text-center">'+(c.lote||'')+'</td>'+
+        '<td class="border px-2 py-1 text-center">'+(c.comunal||'')+'</td>'+
+        '<td class="border px-2 py-1 text-center">'+c.votos+'</td>'+
+        '<td class="border px-2 py-1 text-center">'+(c.sexo==='H'?'H':'M')+'</td>'+
+        (mostrarCoef?'<td class="border px-2 py-1 text-center">'+(c.coeficiente?c.coeficiente.toFixed(4):'—')+'</td>':'')+
+        '<td class="border px-2 py-1 text-center">'+estadoBadge(c.estado)+'</td></tr>';
+    }).join('')+'</tbody></table>';
   return wrap;
 }
-
 function renderIndicadorParidad(electos, totalCupos) {
-  const nH = electos.filter(c => c.sexo === 'H').length;
-  const nM = electos.filter(c => c.sexo === 'M').length;
-  const min = Math.ceil(totalCupos * 0.4);
-  const cumple = nH >= min && nM >= min;
-  const div = document.createElement('div');
-  div.className = 'banner-' + (cumple ? 'ok' : 'err');
-  div.innerHTML = 'Hombres: <strong>' + nH + '</strong> &nbsp; Mujeres: <strong>' + nM + '</strong> &nbsp;→&nbsp; ' +
-    (cumple ? '✓ Cumple paridad (mín. ' + min + ' c/u)' : '⚠ No cumple paridad (mín. ' + min + ' c/u)');
+  const nH=electos.filter(c=>c.sexo==='H').length, nM=electos.filter(c=>c.sexo==='M').length;
+  const min=Math.ceil(totalCupos*0.4), cumple=nH>=min&&nM>=min;
+  const div=document.createElement('div');
+  div.className='banner-'+(cumple?'ok':'err');
+  div.innerHTML='Hombres: <strong>'+nH+'</strong> &nbsp; Mujeres: <strong>'+nM+'</strong> &nbsp;→&nbsp; '+(cumple?'✓ Cumple paridad (mín. '+min+' c/u)':'⚠ No cumple paridad (mín. '+min+' c/u)');
   return div;
 }
 
-// ── CCR UI ────────────────────────────────────────────────────────────────────
-function initCCR() {
-  const sel = document.getElementById('ccr-region-sel');
-  sel.innerHTML = REGIONES.map(r =>
-    '<option value="' + r.id + '">' + r.nombre + ' (' + r.cupos + ' cupo' + (r.cupos > 1 ? 's' : '') + ')</option>'
-  ).join('');
-  actualizarCCRRegion(REGIONES[0].id);
+// ── CCN candidatos ────────────────────────────────────────────────────────────
+function filaViewCCN(c, ctx) {
+  const lotes = typeof LOTES !== 'undefined' ? LOTES : [];
+  return '<div class="grid grid-cols-8 gap-1 text-sm items-center border-b py-0.5 cursor-pointer hover:bg-gray-50 select-none"'+
+    ' data-id="'+c.id+'" ondblclick="window._editCCNCandidato('+c.id+')" title="Doble clic para editar">'+
+    '<span class="col-span-2 truncate">'+c.nombre+'</span>'+
+    '<span class="truncate">'+c.pacto+'</span>'+
+    '<span class="truncate text-xs">'+( c.lote||'')+'</span>'+
+    '<span class="truncate text-xs">'+( c.comunal||'')+'</span>'+
+    '<span>'+c.votos+'</span>'+
+    '<span>'+(c.sexo==='H'?'H':'M')+'</span>'+
+    '<span><button class="text-red-400 hover:text-red-600" onclick="event.stopPropagation();window._removeCCNCandidato('+c.id+')">×</button></span>'+
+  '</div>';
 }
-
-function actualizarCCRRegion(regionId) {
-  const region = REGIONES.find(r => r.id === regionId);
-  document.getElementById('ccr-cupos-badge').textContent =
-    region.cupos + ' cupo' + (region.cupos > 1 ? 's' : '') + ' — Padrón: ' + region.padron;
-  renderCCRPactos(regionId);
-  renderCCRCandidatos(regionId);
-  document.getElementById('ccr-resultado-output').classList.add('hidden');
+function filaEditCCN(c, ctx) {
+  const lotes = typeof LOTES !== 'undefined' ? LOTES : [];
+  const pactoOpts = ctx.pactos.map(p=>'<option value="'+p+'"'+(c.pacto===p?' selected':'')+'>'+p+'</option>').join('');
+  const loteOpts  = lotes.map(l=>'<option value="'+l+'"'+(c.lote===l?' selected':'')+'>'+l+'</option>').join('');
+  return '<div class="grid grid-cols-8 gap-1 text-sm items-center border-b py-0.5 bg-blue-50" data-id="'+c.id+'">'+
+    '<input class="col-span-2 border rounded px-1 text-xs" id="ei-ccn-nombre-'+c.id+'" value="'+c.nombre+'">'+
+    '<select class="border rounded px-1 text-xs" id="ei-ccn-pacto-'+c.id+'"><option value="">—</option>'+pactoOpts+'</select>'+
+    '<select class="border rounded px-1 text-xs" id="ei-ccn-lote-'+c.id+'"><option value="">—</option>'+loteOpts+'</select>'+
+    '<input class="border rounded px-1 text-xs" id="ei-ccn-comunal-'+c.id+'" value="'+(c.comunal||'')+'">'+
+    '<input type="number" class="border rounded px-1 text-xs" id="ei-ccn-votos-'+c.id+'" value="'+c.votos+'">'+
+    '<select class="border rounded text-xs" id="ei-ccn-sexo-'+c.id+'">'+
+      '<option value="H"'+(c.sexo==='H'?' selected':'')+'>H</option>'+
+      '<option value="M"'+(c.sexo==='M'?' selected':'')+'>M</option>'+
+    '</select>'+
+    '<span class="flex gap-1">'+
+      '<button class="text-green-600 font-bold hover:text-green-800" onclick="window._saveCCNCandidato('+c.id+')">✓</button>'+
+      '<button class="text-gray-400 hover:text-gray-600" onclick="renderCCNCandidatos()">✕</button>'+
+    '</span>'+
+  '</div>';
 }
-
-function renderCCRPactos(regionId) {
-  const ctx = getContext('ccr', regionId);
-  const lista = document.getElementById('ccr-pactos-list');
-  const sel   = document.getElementById('ccr-pacto-sel');
-
-  lista.innerHTML = ctx.pactos.map(p =>
-    '<span class="inline-flex items-center gap-1 bg-gray-100 border rounded px-2 py-1 text-sm">' +
-      p +
-      '<button class="text-red-500 hover:text-red-700 font-bold"' +
-        ' onclick="window._removeCCRPacto(\'' + regionId + '\', \'' + p + '\')"' +
-        (ctx.candidatos.some(c => c.pacto === p) ? ' disabled title="Tiene candidatos"' : '') +
-      '>×</button>' +
-    '</span>'
-  ).join('');
-
-  sel.innerHTML = '<option value="">-- Pacto --</option>' +
-    ctx.pactos.map(p => '<option value="' + p + '">' + p + '</option>').join('');
+function renderCCNCandidatos() {
+  const ctx=getContext('ccn');
+  const lista=document.getElementById('ccn-candidatos-list');
+  lista.innerHTML = ctx.candidatos.length===0
+    ? '<p class="text-sm text-gray-400">Sin candidatos aún.</p>'
+    : ctx.candidatos.map(c=>filaViewCCN(c,ctx)).join('');
 }
-
-function addCCRPacto(regionId, nombre) {
-  const ctx = getContext('ccr', regionId);
-  if (!nombre.trim() || ctx.pactos.includes(nombre.trim())) return false;
-  ctx.pactos.push(nombre.trim());
-  renderCCRPactos(regionId);
-  saveState();
+window._editCCNCandidato = function(id) {
+  const ctx=getContext('ccn'), c=ctx.candidatos.find(x=>x.id===id);
+  const row=document.querySelector('#ccn-candidatos-list [data-id="'+id+'"]');
+  if(row) row.outerHTML=filaEditCCN(c,ctx);
+};
+window._saveCCNCandidato = function(id) {
+  const ctx=getContext('ccn'), c=ctx.candidatos.find(x=>x.id===id);
+  c.nombre  = document.getElementById('ei-ccn-nombre-'+id).value.trim()||'(sin nombre)';
+  c.pacto   = document.getElementById('ei-ccn-pacto-'+id).value||'—';
+  c.lote    = document.getElementById('ei-ccn-lote-'+id).value||'';
+  c.comunal = document.getElementById('ei-ccn-comunal-'+id).value.trim().toUpperCase();
+  c.votos   = parseInt(document.getElementById('ei-ccn-votos-'+id).value)||0;
+  c.sexo    = document.getElementById('ei-ccn-sexo-'+id).value;
+  renderCCNCandidatos(); saveState();
+  document.getElementById('ccn-resultado-output').classList.add('hidden');
+};
+window._removeCCNCandidato = function(id) {
+  const ctx=getContext('ccn'); ctx.candidatos=ctx.candidatos.filter(c=>c.id!==id);
+  renderCCNCandidatos(); saveState();
+};
+function addCCNCandidato(datos) {
+  const ctx=getContext('ccn');
+  ctx.candidatos.push({ id:newId(), nombre:datos.nombre.trim()||'(sin nombre)',
+    pacto:datos.pacto||'—', lote:datos.lote||'', comunal:(datos.comunal||'').toUpperCase(),
+    votos:parseInt(datos.votos)||0, sexo:datos.sexo||'H' });
+  renderCCNCandidatos(); saveState();
+  document.getElementById('ccn-resultado-output').classList.add('hidden');
   return true;
 }
 
-function removeCCRPacto(regionId, nombre) {
-  const ctx = getContext('ccr', regionId);
-  if (ctx.candidatos.some(c => c.pacto === nombre)) return;
-  ctx.pactos = ctx.pactos.filter(p => p !== nombre);
-  renderCCRPactos(regionId);
-  saveState();
+// ── CCN Pactos ────────────────────────────────────────────────────────────────
+function renderCCNPactos() {
+  const ctx=getContext('ccn');
+  const lista=document.getElementById('ccn-pactos-list');
+  const sel=document.getElementById('ccn-pacto-sel');
+  lista.innerHTML=ctx.pactos.map(p=>
+    '<span class="inline-flex items-center gap-1 bg-gray-100 border rounded px-2 py-1 text-sm">'+p+
+    '<button class="text-red-500 hover:text-red-700 font-bold" onclick="window._removeCCNPacto(\''+p+'\')"'+
+    (ctx.candidatos.some(c=>c.pacto===p)?' disabled title="Tiene candidatos"':'')+'>×</button></span>'
+  ).join('');
+  sel.innerHTML='<option value="">— Pacto —</option>'+ctx.pactos.map(p=>'<option value="'+p+'">'+p+'</option>').join('');
+}
+function addCCNPacto(n){const ctx=getContext('ccn');if(!n.trim()||ctx.pactos.includes(n.trim()))return false;ctx.pactos.push(n.trim());renderCCNPactos();saveState();return true;}
+window._removeCCNPacto=function(n){const ctx=getContext('ccn');if(ctx.candidatos.some(c=>c.pacto===n))return;ctx.pactos=ctx.pactos.filter(p=>p!==n);renderCCNPactos();saveState();};
+
+// ── CCN calcular ──────────────────────────────────────────────────────────────
+function calcularCCN(modo) {
+  const ctx=getContext('ccn');
+  const output=document.getElementById('ccn-resultado-output');
+  output.innerHTML=''; output.classList.remove('hidden');
+  if(!ctx.pactos.length||!ctx.candidatos.length){output.appendChild(renderBanner('Ingresa al menos un pacto y un candidato.','err'));return;}
+  if(ctx.candidatos.some(c=>c.nombre==='(sin nombre)')){output.appendChild(renderBanner('Falta nombre de candidato — edita las filas antes de calcular.','err'));return;}
+
+  const modoBadge = modo==='proyectado'
+    ? '<span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded font-semibold mb-3">Modo: Proyectado (7 votos/elector)</span>'
+    : '<span class="inline-block bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded font-semibold mb-3">Modo: Estimado (votos manuales)</span>';
+  const badgeDiv=document.createElement('div'); badgeDiv.innerHTML=modoBadge; output.appendChild(badgeDiv);
+
+  const candidatos = modo==='proyectado'
+    ? ctx.candidatos.map(c=>({...c, votos: proyectarVotosCCN(c)}))
+    : ctx.candidatos.map(c=>({...c}));
+
+  if(modo==='proyectado'){
+    const sinProx=candidatos.filter(c=>c.votos===0&&(c.lote||c.comunal));
+    if(sinProx.length) output.appendChild(renderBanner('⚠ '+sinProx.length+' candidato(s) con votos proyectados = 0 (falta lote o comunal no encontrado en padrón).','warn'));
+  }
+
+  const dhondt=runDhondt(candidatos,ctx.pactos,CCN_CUPOS);
+  if(dhondt.listaUnica) output.appendChild(renderBanner('Lista única — conteo directo (art. 74)','warn'));
+  dhondt.advertencias.forEach(function(a){
+    if(a.tipo==='sorteo_dhondt') output.appendChild(renderBanner('⚠ Empate — sorteo cupo N°'+a.cupo+'. Asignado a: '+a.pactoGanador,'warn'));
+    if(a.tipo==='sorteo_individual') output.appendChild(renderBanner('⚠ Empate individual pacto '+a.pacto+' ('+a.votos+' votos)','warn'));
+  });
+  if(!dhondt.listaUnica) output.appendChild(renderDhondtTable(dhondt,ctx.pactos,CCN_CUPOS));
+
+  const par=aplicarParidadCCN(dhondt.electos,dhondt.noElectos);
+  if(par.imposible) output.appendChild(renderBanner('⚠ No es posible alcanzar la paridad con los candidatos disponibles.','err'));
+  else if(par.corregido) output.appendChild(renderBanner('Se aplicó corrección de paridad (art. 76–77a)','warn'));
+  output.appendChild(renderElectos(par.electos,false));
+  output.appendChild(renderIndicadorParidad(par.electos,CCN_CUPOS));
 }
 
+// ── CCR candidatos ────────────────────────────────────────────────────────────
 function renderCCRCandidatos(regionId) {
-  const ctx = getContext('ccr', regionId);
-  const lista = document.getElementById('ccr-candidatos-list');
-  if (ctx.candidatos.length === 0) {
-    lista.innerHTML = '<p class="text-sm text-gray-400">Sin candidatos aún.</p>';
-    return;
-  }
-  lista.innerHTML = ctx.candidatos.map(c => {
-    var pactoOpts = ctx.pactos.map(p => '<option value="' + p + '"' + (c.pacto === p ? ' selected' : '') + '>' + p + '</option>').join('');
-    return '<div class="grid grid-cols-5 gap-2 text-sm items-center border-b py-1 cursor-pointer hover:bg-gray-50 select-none"' +
-      ' data-id="' + c.id + '" ondblclick="window._editCCRCandidato(\'' + regionId + '\', ' + c.id + ')" title="Doble clic para editar">' +
-      '<span class="col-span-2">' + c.nombre + '</span>' +
-      '<span>' + c.pacto + '</span>' +
-      '<span>' + c.votos + '</span>' +
-      '<span class="flex items-center gap-1">' +
-        (c.sexo === 'H' ? 'Hombre' : 'Mujer') +
-        '<button class="ml-2 text-red-400 hover:text-red-600"' +
-          ' onclick="event.stopPropagation(); window._removeCCRCandidato(\'' + regionId + '\', ' + c.id + ')">×</button>' +
-      '</span>' +
+  const ctx=getContext('ccr',regionId);
+  const lista=document.getElementById('ccr-candidatos-list');
+  const lotes=typeof LOTES!=='undefined'?LOTES:[];
+  if(!ctx.candidatos.length){lista.innerHTML='<p class="text-sm text-gray-400">Sin candidatos aún.</p>';return;}
+  lista.innerHTML=ctx.candidatos.map(c=>{
+    const pactoOpts=ctx.pactos.map(p=>'<option value="'+p+'"'+(c.pacto===p?' selected':'')+'>'+p+'</option>').join('');
+    const loteOpts=lotes.map(l=>'<option value="'+l+'"'+(c.lote===l?' selected':'')+'>'+l+'</option>').join('');
+    return '<div class="grid grid-cols-8 gap-1 text-sm items-center border-b py-0.5 cursor-pointer hover:bg-gray-50 select-none"'+
+      ' data-id="'+c.id+'" ondblclick="window._editCCRCandidato(\''+regionId+'\','+c.id+')" title="Doble clic para editar">'+
+      '<span class="col-span-2 truncate">'+c.nombre+'</span>'+
+      '<span class="truncate">'+c.pacto+'</span>'+
+      '<span class="truncate text-xs">'+(c.lote||'')+'</span>'+
+      '<span class="truncate text-xs">'+(c.comunal||'')+'</span>'+
+      '<span>'+c.votos+'</span>'+
+      '<span>'+(c.sexo==='H'?'H':'M')+'</span>'+
+      '<span><button class="text-red-400 hover:text-red-600" onclick="event.stopPropagation();window._removeCCRCandidato(\''+regionId+'\','+c.id+')">×</button></span>'+
     '</div>';
   }).join('');
 }
-
-window._editCCRCandidato = function(regionId, id) {
-  const ctx = getContext('ccr', regionId);
-  const c = ctx.candidatos.find(x => x.id === id);
-  var pactoOpts = ctx.pactos.map(p => '<option value="' + p + '"' + (c.pacto === p ? ' selected' : '') + '>' + p + '</option>').join('');
-  const row = document.querySelector('#ccr-candidatos-list [data-id="' + id + '"]');
-  if (row) row.outerHTML =
-    '<div class="grid grid-cols-5 gap-2 text-sm items-center border-b py-1 bg-blue-50" data-id="' + id + '">' +
-      '<input class="col-span-2 border rounded px-1 py-0.5" id="edit-ccr-nombre-' + id + '" value="' + c.nombre + '">' +
-      '<select class="border rounded px-1 py-0.5" id="edit-ccr-pacto-' + id + '">' + pactoOpts + '</select>' +
-      '<input type="number" min="0" class="border rounded px-1 py-0.5" id="edit-ccr-votos-' + id + '" value="' + c.votos + '">' +
-      '<span class="flex items-center gap-1">' +
-        '<select class="border rounded px-1 py-0.5" id="edit-ccr-sexo-' + id + '">' +
-          '<option value="H"' + (c.sexo === 'H' ? ' selected' : '') + '>H</option>' +
-          '<option value="M"' + (c.sexo === 'M' ? ' selected' : '') + '>M</option>' +
-        '</select>' +
-        '<button class="ml-1 text-green-600 hover:text-green-800 font-bold" title="Guardar"' +
-          ' onclick="window._saveCCRCandidato(\'' + regionId + '\', ' + id + ')">✓</button>' +
-        '<button class="ml-1 text-gray-400 hover:text-gray-600"' +
-          ' onclick="renderCCRCandidatos(\'' + regionId + '\')">✕</button>' +
-      '</span>' +
-    '</div>';
+window._editCCRCandidato=function(regionId,id){
+  const ctx=getContext('ccr',regionId),c=ctx.candidatos.find(x=>x.id===id);
+  const lotes=typeof LOTES!=='undefined'?LOTES:[];
+  const pactoOpts=ctx.pactos.map(p=>'<option value="'+p+'"'+(c.pacto===p?' selected':'')+'>'+p+'</option>').join('');
+  const loteOpts=lotes.map(l=>'<option value="'+l+'"'+(c.lote===l?' selected':'')+'>'+l+'</option>').join('');
+  const row=document.querySelector('#ccr-candidatos-list [data-id="'+id+'"]');
+  if(row) row.outerHTML='<div class="grid grid-cols-8 gap-1 text-sm items-center border-b py-0.5 bg-blue-50" data-id="'+id+'">'+
+    '<input class="col-span-2 border rounded px-1 text-xs" id="ei-ccr-nombre-'+id+'" value="'+c.nombre+'">'+
+    '<select class="border rounded px-1 text-xs" id="ei-ccr-pacto-'+id+'"><option value="">—</option>'+pactoOpts+'</select>'+
+    '<select class="border rounded px-1 text-xs" id="ei-ccr-lote-'+id+'"><option value="">—</option>'+loteOpts+'</select>'+
+    '<input class="border rounded px-1 text-xs" id="ei-ccr-comunal-'+id+'" value="'+(c.comunal||'')+'">'+
+    '<input type="number" class="border rounded px-1 text-xs" id="ei-ccr-votos-'+id+'" value="'+c.votos+'">'+
+    '<select class="border rounded text-xs" id="ei-ccr-sexo-'+id+'">'+
+      '<option value="H"'+(c.sexo==='H'?' selected':'')+'>H</option>'+
+      '<option value="M"'+(c.sexo==='M'?' selected':'')+'>M</option>'+
+    '</select>'+
+    '<span class="flex gap-1">'+
+      '<button class="text-green-600 font-bold hover:text-green-800" onclick="window._saveCCRCandidato(\''+regionId+'\','+id+')">✓</button>'+
+      '<button class="text-gray-400 hover:text-gray-600" onclick="renderCCRCandidatos(\''+regionId+'\')">✕</button>'+
+    '</span></div>';
 };
-
-window._saveCCRCandidato = function(regionId, id) {
-  const ctx = getContext('ccr', regionId);
-  const c = ctx.candidatos.find(x => x.id === id);
-  const nombre = document.getElementById('edit-ccr-nombre-' + id).value.trim();
-  const pacto  = document.getElementById('edit-ccr-pacto-'  + id).value;
-  const votos  = parseInt(document.getElementById('edit-ccr-votos-' + id).value);
-  const sexo   = document.getElementById('edit-ccr-sexo-'  + id).value;
-  if (!nombre || !pacto || isNaN(votos)) return;
-  c.nombre = nombre; c.pacto = pacto; c.votos = votos; c.sexo = sexo;
-  renderCCRCandidatos(regionId);
+window._saveCCRCandidato=function(regionId,id){
+  const ctx=getContext('ccr',regionId),c=ctx.candidatos.find(x=>x.id===id);
+  c.nombre  = document.getElementById('ei-ccr-nombre-'+id).value.trim()||'(sin nombre)';
+  c.pacto   = document.getElementById('ei-ccr-pacto-'+id).value||'—';
+  c.lote    = document.getElementById('ei-ccr-lote-'+id).value||'';
+  c.comunal = document.getElementById('ei-ccr-comunal-'+id).value.trim().toUpperCase();
+  c.votos   = parseInt(document.getElementById('ei-ccr-votos-'+id).value)||0;
+  c.sexo    = document.getElementById('ei-ccr-sexo-'+id).value;
+  renderCCRCandidatos(regionId); saveState();
   document.getElementById('ccr-resultado-output').classList.add('hidden');
-  saveState();
 };
-
-function addCCRCandidato(regionId, datos) {
-  const { nombre, pacto, votos, sexo } = datos;
-  const ctx = getContext('ccr', regionId);
-  ctx.candidatos.push({
-    id: newId(),
-    nombre: nombre.trim() || '(sin nombre)',
-    pacto: pacto || '—',
-    votos: parseInt(votos) || 0,
-    sexo: sexo || 'H',
-  });
-  renderCCRCandidatos(regionId);
+window._removeCCRCandidato=function(regionId,id){
+  const ctx=getContext('ccr',regionId);ctx.candidatos=ctx.candidatos.filter(c=>c.id!==id);
+  renderCCRCandidatos(regionId);saveState();
+};
+function addCCRCandidato(regionId,datos){
+  const ctx=getContext('ccr',regionId);
+  ctx.candidatos.push({id:newId(),nombre:datos.nombre.trim()||'(sin nombre)',
+    pacto:datos.pacto||'—',lote:datos.lote||'',comunal:(datos.comunal||'').toUpperCase(),
+    votos:parseInt(datos.votos)||0,sexo:datos.sexo||'H'});
+  renderCCRCandidatos(regionId);saveState();
   document.getElementById('ccr-resultado-output').classList.add('hidden');
-  saveState();
   return true;
 }
 
-function removeCCRCandidato(regionId, id) {
-  const ctx = getContext('ccr', regionId);
-  ctx.candidatos = ctx.candidatos.filter(c => c.id !== id);
-  renderCCRCandidatos(regionId);
+// ── CCR Pactos ────────────────────────────────────────────────────────────────
+function renderCCRPactos(regionId){
+  const ctx=getContext('ccr',regionId);
+  document.getElementById('ccr-pactos-list').innerHTML=ctx.pactos.map(p=>
+    '<span class="inline-flex items-center gap-1 bg-gray-100 border rounded px-2 py-1 text-sm">'+p+
+    '<button class="text-red-500 hover:text-red-700 font-bold" onclick="window._removeCCRPacto(\''+regionId+'\',\''+p+'\')"'+
+    (ctx.candidatos.some(c=>c.pacto===p)?' disabled title="Tiene candidatos"':'')+'>×</button></span>'
+  ).join('');
+  document.getElementById('ccr-pacto-sel').innerHTML='<option value="">— Pacto —</option>'+
+    ctx.pactos.map(p=>'<option value="'+p+'">'+p+'</option>').join('');
+}
+function addCCRPacto(regionId,n){const ctx=getContext('ccr',regionId);if(!n.trim()||ctx.pactos.includes(n.trim()))return false;ctx.pactos.push(n.trim());renderCCRPactos(regionId);saveState();return true;}
+window._removeCCRPacto=function(regionId,n){const ctx=getContext('ccr',regionId);if(ctx.candidatos.some(c=>c.pacto===n))return;ctx.pactos=ctx.pactos.filter(p=>p!==n);renderCCRPactos(regionId);saveState();};
+
+// ── CCR init/region ───────────────────────────────────────────────────────────
+function initCCR(){
+  const sel=document.getElementById('ccr-region-sel');
+  sel.innerHTML=REGIONES.map(r=>'<option value="'+r.id+'">'+r.nombre+' ('+r.cupos+' cupo'+(r.cupos>1?'s':'')+')</option>').join('');
+  actualizarCCRRegion(REGIONES[0].id);
+}
+function actualizarCCRRegion(regionId){
+  const r=REGIONES.find(x=>x.id===regionId);
+  document.getElementById('ccr-cupos-badge').textContent=r.cupos+' cupo'+(r.cupos>1?'s':'')+' — Padrón: '+r.padron;
+  renderCCRPactos(regionId); renderCCRCandidatos(regionId);
+  document.getElementById('ccr-resultado-output').classList.add('hidden');
 }
 
-function calcularCCR(regionId) {
-  const region = REGIONES.find(r => r.id === regionId);
-  const ctx = getContext('ccr', regionId);
-  const output = document.getElementById('ccr-resultado-output');
-  output.innerHTML = '';
-  output.classList.remove('hidden');
+// ── CCR calcular ──────────────────────────────────────────────────────────────
+function calcularCCR(regionId, modo) {
+  const region=REGIONES.find(r=>r.id===regionId);
+  const ctx=getContext('ccr',regionId);
+  const output=document.getElementById('ccr-resultado-output');
+  output.innerHTML=''; output.classList.remove('hidden');
+  if(!ctx.pactos.length||!ctx.candidatos.length){output.appendChild(renderBanner('Ingresa al menos un pacto y un candidato.','err'));return;}
+  if(ctx.candidatos.some(c=>c.nombre==='(sin nombre)')){output.appendChild(renderBanner('Falta nombre de candidato.','err'));return;}
 
-  if (ctx.pactos.length === 0 || ctx.candidatos.length === 0) {
-    output.appendChild(renderBanner('Ingresa al menos un pacto y un candidato antes de calcular.', 'err'));
-    return;
+  const modoBadge = modo==='proyectado'
+    ? '<span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded font-semibold mb-3">Modo: Proyectado (4 votos/elector)</span>'
+    : '<span class="inline-block bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded font-semibold mb-3">Modo: Estimado (votos manuales)</span>';
+  const badgeDiv=document.createElement('div'); badgeDiv.innerHTML=modoBadge; output.appendChild(badgeDiv);
+
+  const candidatos = modo==='proyectado'
+    ? ctx.candidatos.map(c=>({...c, votos: proyectarVotosCCR(c,regionId)}))
+    : ctx.candidatos.map(c=>({...c}));
+
+  if(modo==='proyectado'){
+    const sinProx=candidatos.filter(c=>c.votos===0&&(c.lote||c.comunal));
+    if(sinProx.length) output.appendChild(renderBanner('⚠ '+sinProx.length+' candidato(s) con votos proyectados = 0 (falta lote o comunal).','warn'));
   }
-  if (ctx.candidatos.some(c => c.nombre === '(sin nombre)')) {
-    output.appendChild(renderBanner('Falta nombre de candidato — edita las filas marcadas antes de calcular.', 'err'));
-    return;
-  }
 
-  const dhondt = runDhondt(ctx.candidatos, ctx.pactos, region.cupos);
-
-  if (dhondt.listaUnica) {
-    output.appendChild(renderBanner('Lista única — se aplica conteo directo (art. 74)', 'warn'));
-  }
-
-  dhondt.advertencias.forEach(function(adv) {
-    if (adv.tipo === 'sorteo_dhondt') {
-      output.appendChild(renderBanner('⚠ Empate en cifra repartidora — se requiere sorteo para el cupo N°' + adv.cupo + '. Simulación asignó a: ' + adv.pactoGanador, 'warn'));
-    }
-    if (adv.tipo === 'sorteo_individual') {
-      output.appendChild(renderBanner('⚠ Empate en votos individuales en pacto ' + adv.pacto + ' (' + adv.votos + ' votos) — se requiere sorteo', 'warn'));
-    }
+  const dhondt=runDhondt(candidatos,ctx.pactos,region.cupos);
+  if(dhondt.listaUnica) output.appendChild(renderBanner('Lista única — conteo directo (art. 74)','warn'));
+  dhondt.advertencias.forEach(function(a){
+    if(a.tipo==='sorteo_dhondt') output.appendChild(renderBanner('⚠ Sorteo cupo N°'+a.cupo+' → '+a.pactoGanador,'warn'));
+    if(a.tipo==='sorteo_individual') output.appendChild(renderBanner('⚠ Empate individual pacto '+a.pacto+' ('+a.votos+' votos)','warn'));
   });
+  if(!dhondt.listaUnica) output.appendChild(renderDhondtTable(dhondt,ctx.pactos,region.cupos));
 
-  if (!dhondt.listaUnica) {
-    output.appendChild(renderDhondtTable(dhondt, ctx.pactos, region.cupos));
-  }
-
-  const paridad = aplicarParidadCCR(dhondt.electos, dhondt.noElectos, region.padron, region.cupos);
-
-  if (paridad.imposible) {
-    output.appendChild(renderBanner('⚠ No es posible alcanzar la paridad con los candidatos ingresados.', 'err'));
-  } else if (paridad.corregido) {
-    output.appendChild(renderBanner('Se aplicó corrección de paridad (art. 77b)', 'warn'));
-  }
-
-  output.appendChild(renderElectos(paridad.electos, true));
-  output.appendChild(renderIndicadorParidad(paridad.electos, region.cupos));
+  const par=aplicarParidadCCR(dhondt.electos,dhondt.noElectos,region.padron,region.cupos);
+  if(par.imposible) output.appendChild(renderBanner('⚠ No es posible alcanzar la paridad.','err'));
+  else if(par.corregido) output.appendChild(renderBanner('Se aplicó corrección de paridad (art. 77b)','warn'));
+  output.appendChild(renderElectos(par.electos,true));
+  output.appendChild(renderIndicadorParidad(par.electos,region.cupos));
 }
 
-function renderResumenNacionalCCR() {
-  const output = document.getElementById('ccr-resultado-output');
-  output.innerHTML = '';
-  output.classList.remove('hidden');
-
-  const regionesConDatos = REGIONES.filter(r => getContext('ccr', r.id).candidatos.length > 0);
-
-  if (regionesConDatos.length === 0) {
-    output.appendChild(renderBanner('No hay datos ingresados en ninguna región.', 'err'));
-    return;
-  }
-
-  const titulo = document.createElement('h3');
-  titulo.className = 'font-bold text-lg mb-4';
-  titulo.textContent = 'Resumen Nacional CCR';
-  output.appendChild(titulo);
-
-  regionesConDatos.forEach(function(region) {
-    const ctx = getContext('ccr', region.id);
-    const seccion = document.createElement('div');
-    seccion.className = 'mb-6 border rounded p-3 bg-white';
-
-    const dhondt = runDhondt(ctx.candidatos, ctx.pactos, region.cupos);
-    const paridad = aplicarParidadCCR(dhondt.electos, dhondt.noElectos, region.padron, region.cupos);
-
-    seccion.innerHTML = '<h4 class="font-semibold mb-2">' + region.nombre + ' (' + region.cupos + ' cupo' + (region.cupos > 1 ? 's' : '') + ')</h4>';
-    seccion.appendChild(renderElectos(paridad.electos, true));
-    seccion.appendChild(renderIndicadorParidad(paridad.electos, region.cupos));
-    output.appendChild(seccion);
+function renderResumenNacionalCCR(modo) {
+  const output=document.getElementById('ccr-resultado-output');
+  output.innerHTML=''; output.classList.remove('hidden');
+  const regConDatos=REGIONES.filter(r=>getContext('ccr',r.id).candidatos.length>0);
+  if(!regConDatos.length){output.appendChild(renderBanner('No hay datos en ninguna región.','err'));return;}
+  const h3=document.createElement('h3');h3.className='font-bold text-lg mb-4';h3.textContent='Resumen Nacional CCR';output.appendChild(h3);
+  regConDatos.forEach(function(region){
+    const ctx=getContext('ccr',region.id);
+    const sec=document.createElement('div');sec.className='mb-6 border rounded p-3 bg-white';
+    const candidatos=modo==='proyectado'
+      ?ctx.candidatos.map(c=>({...c,votos:proyectarVotosCCR(c,region.id)}))
+      :ctx.candidatos.map(c=>({...c}));
+    const dhondt=runDhondt(candidatos,ctx.pactos,region.cupos);
+    const par=aplicarParidadCCR(dhondt.electos,dhondt.noElectos,region.padron,region.cupos);
+    sec.innerHTML='<h4 class="font-semibold mb-2">'+region.nombre+' ('+region.cupos+' cupo'+(region.cupos>1?'s':'')+')</h4>';
+    sec.appendChild(renderElectos(par.electos,true));
+    sec.appendChild(renderIndicadorParidad(par.electos,region.cupos));
+    output.appendChild(sec);
   });
 }
 
-// ── app.js — wiring ───────────────────────────────────────────────────────────
-window._removeCCNPacto     = removeCCNPacto;
-window._removeCCNCandidato = removeCCNCandidato;
-window._removeCCRPacto     = function(regionId, nombre) { removeCCRPacto(regionId, nombre); };
-window._removeCCRCandidato = function(regionId, id) { removeCCRCandidato(regionId, id); };
-
-document.getElementById('tab-ccn').addEventListener('click', function() {
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+document.getElementById('tab-ccn').addEventListener('click',function(){
   document.getElementById('panel-ccn').classList.remove('hidden');
   document.getElementById('panel-ccr').classList.add('hidden');
   document.getElementById('tab-ccn').classList.add('tab-active');
   document.getElementById('tab-ccr').classList.remove('tab-active');
 });
-document.getElementById('tab-ccr').addEventListener('click', function() {
+document.getElementById('tab-ccr').addEventListener('click',function(){
   document.getElementById('panel-ccn').classList.add('hidden');
   document.getElementById('panel-ccr').classList.remove('hidden');
   document.getElementById('tab-ccn').classList.remove('tab-active');
   document.getElementById('tab-ccr').classList.add('tab-active');
 });
 
-document.getElementById('ccn-add-pacto').addEventListener('click', function() {
-  var input = document.getElementById('ccn-new-pacto');
-  if (addCCNPacto(input.value)) input.value = '';
-});
-document.getElementById('ccn-new-pacto').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') document.getElementById('ccn-add-pacto').click();
-});
+// ── CCN wiring ────────────────────────────────────────────────────────────────
+document.getElementById('ccn-add-pacto').addEventListener('click',function(){const i=document.getElementById('ccn-new-pacto');if(addCCNPacto(i.value))i.value='';});
+document.getElementById('ccn-new-pacto').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('ccn-add-pacto').click();});
 
-function doAddCCNCandidato() {
-  var ok = addCCNCandidato({
-    nombre: document.getElementById('ccn-nombre').value,
-    pacto:  document.getElementById('ccn-pacto-sel').value,
-    votos:  document.getElementById('ccn-votos').value,
-    sexo:   document.getElementById('ccn-sexo').value,
+function doAddCCN(){
+  const ok=addCCNCandidato({
+    nombre:  document.getElementById('ccn-nombre').value,
+    pacto:   document.getElementById('ccn-pacto-sel').value,
+    lote:    document.getElementById('ccn-lote-sel').value,
+    comunal: document.getElementById('ccn-comunal').value,
+    votos:   document.getElementById('ccn-votos').value,
+    sexo:    document.getElementById('ccn-sexo').value,
   });
-  if (ok) {
-    document.getElementById('ccn-nombre').value = '';
-    document.getElementById('ccn-votos').value  = '';
-    // pacto y sexo se mantienen (sticky)
-  }
+  if(ok){ document.getElementById('ccn-nombre').value=''; document.getElementById('ccn-votos').value=''; document.getElementById('ccn-comunal').value=''; }
 }
-document.getElementById('ccn-add-candidato').addEventListener('click', doAddCCNCandidato);
-document.getElementById('ccn-nombre').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') doAddCCNCandidato();
-});
-document.getElementById('ccn-calcular').addEventListener('click', calcularCCN);
+document.getElementById('ccn-add-candidato').addEventListener('click', doAddCCN);
+document.getElementById('ccn-nombre').addEventListener('keydown',function(e){if(e.key==='Enter')doAddCCN();});
+document.getElementById('ccn-calcular-est').addEventListener('click',function(){calcularCCN('estimado');});
+document.getElementById('ccn-calcular-proy').addEventListener('click',function(){calcularCCN('proyectado');});
 
-document.getElementById('ccr-region-sel').addEventListener('change', function(e) {
-  state.ccrRegionActiva = e.target.value;
-  actualizarCCRRegion(e.target.value);
-});
+// ── CCR wiring ────────────────────────────────────────────────────────────────
+document.getElementById('ccr-region-sel').addEventListener('change',function(e){state.ccrRegionActiva=e.target.value;actualizarCCRRegion(e.target.value);});
+document.getElementById('ccr-add-pacto').addEventListener('click',function(){const i=document.getElementById('ccr-new-pacto');if(addCCRPacto(state.ccrRegionActiva,i.value))i.value='';});
+document.getElementById('ccr-new-pacto').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('ccr-add-pacto').click();});
 
-document.getElementById('ccr-add-pacto').addEventListener('click', function() {
-  var input = document.getElementById('ccr-new-pacto');
-  var regionId = state.ccrRegionActiva;
-  if (addCCRPacto(regionId, input.value)) input.value = '';
-});
-document.getElementById('ccr-new-pacto').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') document.getElementById('ccr-add-pacto').click();
-});
-
-function doAddCCRCandidato() {
-  var regionId = state.ccrRegionActiva;
-  var ok = addCCRCandidato(regionId, {
-    nombre: document.getElementById('ccr-nombre').value,
-    pacto:  document.getElementById('ccr-pacto-sel').value,
-    votos:  document.getElementById('ccr-votos').value,
-    sexo:   document.getElementById('ccr-sexo').value,
+function doAddCCR(){
+  const rid=state.ccrRegionActiva;
+  const ok=addCCRCandidato(rid,{
+    nombre:  document.getElementById('ccr-nombre').value,
+    pacto:   document.getElementById('ccr-pacto-sel').value,
+    lote:    document.getElementById('ccr-lote-sel').value,
+    comunal: document.getElementById('ccr-comunal').value,
+    votos:   document.getElementById('ccr-votos').value,
+    sexo:    document.getElementById('ccr-sexo').value,
   });
-  if (ok) {
-    document.getElementById('ccr-nombre').value = '';
-    document.getElementById('ccr-votos').value  = '';
-    // pacto y sexo se mantienen (sticky)
-  }
+  if(ok){ document.getElementById('ccr-nombre').value=''; document.getElementById('ccr-votos').value=''; document.getElementById('ccr-comunal').value=''; }
 }
-document.getElementById('ccr-add-candidato').addEventListener('click', doAddCCRCandidato);
-document.getElementById('ccr-nombre').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') doAddCCRCandidato();
+document.getElementById('ccr-add-candidato').addEventListener('click', doAddCCR);
+document.getElementById('ccr-nombre').addEventListener('keydown',function(e){if(e.key==='Enter')doAddCCR();});
+document.getElementById('ccr-calcular-est').addEventListener('click',function(){calcularCCR(state.ccrRegionActiva,'estimado');});
+document.getElementById('ccr-calcular-proy').addEventListener('click',function(){calcularCCR(state.ccrRegionActiva,'proyectado');});
+document.getElementById('ccr-calcular-todas').addEventListener('click',function(){
+  const modo = confirm('¿Usar modo Proyectado para el resumen nacional?\n(Cancelar = Estimado)') ? 'proyectado' : 'estimado';
+  renderResumenNacionalCCR(modo);
 });
 
-document.getElementById('ccr-calcular').addEventListener('click', function() {
-  calcularCCR(state.ccrRegionActiva);
-});
-document.getElementById('ccr-calcular-todas').addEventListener('click', renderResumenNacionalCCR);
-
-// Init
+// ── Init ──────────────────────────────────────────────────────────────────────
 loadState();
 renderCCNPactos();
 renderCCNCandidatos();
+if(typeof LOTES!=='undefined'){
+  ['ccn-lote-sel','ccr-lote-sel'].forEach(function(id){
+    const sel=document.getElementById(id);
+    sel.innerHTML='<option value="">— Lote —</option>'+LOTES.map(l=>'<option value="'+l+'">'+l+'</option>').join('');
+  });
+}
 initCCR();
+setupAutocompleteCCN();
+setupAutocompleteCCR();
 </script>
 </body>
 </html>

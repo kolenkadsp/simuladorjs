@@ -566,9 +566,15 @@ window._saveCCNCandidato = function(id) {
 
 function addCCNCandidato(datos) {
   const { nombre, pacto, votos, sexo } = datos;
-  if (!nombre.trim() || !pacto || votos === '' || !sexo) return false;
+  if (!nombre.trim()) return false;
   const ctx = getContext('ccn');
-  ctx.candidatos.push({ id: newId(), nombre: nombre.trim(), pacto, votos: parseInt(votos), sexo });
+  ctx.candidatos.push({
+    id: newId(),
+    nombre: nombre.trim(),
+    pacto: pacto || '—',
+    votos: parseInt(votos) || 0,
+    sexo: sexo || 'H',
+  });
   renderCCNCandidatos();
   document.getElementById('ccn-resultado-output').classList.add('hidden');
   saveState();
@@ -824,9 +830,15 @@ window._saveCCRCandidato = function(regionId, id) {
 
 function addCCRCandidato(regionId, datos) {
   const { nombre, pacto, votos, sexo } = datos;
-  if (!nombre.trim() || !pacto || votos === '' || !sexo) return false;
+  if (!nombre.trim()) return false;
   const ctx = getContext('ccr', regionId);
-  ctx.candidatos.push({ id: newId(), nombre: nombre.trim(), pacto, votos: parseInt(votos), sexo });
+  ctx.candidatos.push({
+    id: newId(),
+    nombre: nombre.trim(),
+    pacto: pacto || '—',
+    votos: parseInt(votos) || 0,
+    sexo: sexo || 'H',
+  });
   renderCCRCandidatos(regionId);
   document.getElementById('ccr-resultado-output').classList.add('hidden');
   saveState();
@@ -941,7 +953,7 @@ document.getElementById('ccn-new-pacto').addEventListener('keydown', function(e)
   if (e.key === 'Enter') document.getElementById('ccn-add-pacto').click();
 });
 
-document.getElementById('ccn-add-candidato').addEventListener('click', function() {
+function doAddCCNCandidato() {
   var ok = addCCNCandidato({
     nombre: document.getElementById('ccn-nombre').value,
     pacto:  document.getElementById('ccn-pacto-sel').value,
@@ -951,8 +963,12 @@ document.getElementById('ccn-add-candidato').addEventListener('click', function(
   if (ok) {
     document.getElementById('ccn-nombre').value = '';
     document.getElementById('ccn-votos').value  = '';
-    document.getElementById('ccn-sexo').value   = '';
+    // pacto y sexo se mantienen (sticky)
   }
+}
+document.getElementById('ccn-add-candidato').addEventListener('click', doAddCCNCandidato);
+document.getElementById('ccn-nombre').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doAddCCNCandidato();
 });
 document.getElementById('ccn-calcular').addEventListener('click', calcularCCN);
 
@@ -970,7 +986,7 @@ document.getElementById('ccr-new-pacto').addEventListener('keydown', function(e)
   if (e.key === 'Enter') document.getElementById('ccr-add-pacto').click();
 });
 
-document.getElementById('ccr-add-candidato').addEventListener('click', function() {
+function doAddCCRCandidato() {
   var regionId = state.ccrRegionActiva;
   var ok = addCCRCandidato(regionId, {
     nombre: document.getElementById('ccr-nombre').value,
@@ -981,8 +997,12 @@ document.getElementById('ccr-add-candidato').addEventListener('click', function(
   if (ok) {
     document.getElementById('ccr-nombre').value = '';
     document.getElementById('ccr-votos').value  = '';
-    document.getElementById('ccr-sexo').value   = '';
+    // pacto y sexo se mantienen (sticky)
   }
+}
+document.getElementById('ccr-add-candidato').addEventListener('click', doAddCCRCandidato);
+document.getElementById('ccr-nombre').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doAddCCRCandidato();
 });
 
 document.getElementById('ccr-calcular').addEventListener('click', function() {

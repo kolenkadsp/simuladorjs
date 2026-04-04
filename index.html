@@ -499,17 +499,15 @@ function removeCCNPacto(nombre) {
 }
 
 function filaViewCCN(c, ctx) {
-  var pactoOpts = ctx.pactos.map(p => '<option value="' + p + '"' + (c.pacto === p ? ' selected' : '') + '>' + p + '</option>').join('');
-  return '<div class="grid grid-cols-5 gap-2 text-sm items-center border-b py-1" data-id="' + c.id + '">' +
+  return '<div class="grid grid-cols-5 gap-2 text-sm items-center border-b py-1 cursor-pointer hover:bg-gray-50 select-none"' +
+    ' data-id="' + c.id + '" ondblclick="window._editCCNCandidato(' + c.id + ')" title="Doble clic para editar">' +
     '<span class="col-span-2">' + c.nombre + '</span>' +
     '<span>' + c.pacto + '</span>' +
     '<span>' + c.votos + '</span>' +
     '<span class="flex items-center gap-1">' +
       (c.sexo === 'H' ? 'Hombre' : 'Mujer') +
-      '<button class="ml-1 text-blue-400 hover:text-blue-600" title="Editar"' +
-        ' onclick="window._editCCNCandidato(' + c.id + ')">✏️</button>' +
-      '<button class="ml-1 text-red-400 hover:text-red-600"' +
-        ' onclick="window._removeCCNCandidato(' + c.id + ')">×</button>' +
+      '<button class="ml-2 text-red-400 hover:text-red-600"' +
+        ' onclick="event.stopPropagation(); window._removeCCNCandidato(' + c.id + ')">×</button>' +
     '</span>' +
   '</div>';
 }
@@ -779,16 +777,15 @@ function renderCCRCandidatos(regionId) {
   }
   lista.innerHTML = ctx.candidatos.map(c => {
     var pactoOpts = ctx.pactos.map(p => '<option value="' + p + '"' + (c.pacto === p ? ' selected' : '') + '>' + p + '</option>').join('');
-    return '<div class="grid grid-cols-5 gap-2 text-sm items-center border-b py-1" data-id="' + c.id + '">' +
+    return '<div class="grid grid-cols-5 gap-2 text-sm items-center border-b py-1 cursor-pointer hover:bg-gray-50 select-none"' +
+      ' data-id="' + c.id + '" ondblclick="window._editCCRCandidato(\'' + regionId + '\', ' + c.id + ')" title="Doble clic para editar">' +
       '<span class="col-span-2">' + c.nombre + '</span>' +
       '<span>' + c.pacto + '</span>' +
       '<span>' + c.votos + '</span>' +
       '<span class="flex items-center gap-1">' +
         (c.sexo === 'H' ? 'Hombre' : 'Mujer') +
-        '<button class="ml-1 text-blue-400 hover:text-blue-600" title="Editar"' +
-          ' onclick="window._editCCRCandidato(\'' + regionId + '\', ' + c.id + ')">✏️</button>' +
-        '<button class="ml-1 text-red-400 hover:text-red-600"' +
-          ' onclick="window._removeCCRCandidato(\'' + regionId + '\', ' + c.id + ')">×</button>' +
+        '<button class="ml-2 text-red-400 hover:text-red-600"' +
+          ' onclick="event.stopPropagation(); window._removeCCRCandidato(\'' + regionId + '\', ' + c.id + ')">×</button>' +
       '</span>' +
     '</div>';
   }).join('');

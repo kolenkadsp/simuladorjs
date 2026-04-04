@@ -566,11 +566,10 @@ window._saveCCNCandidato = function(id) {
 
 function addCCNCandidato(datos) {
   const { nombre, pacto, votos, sexo } = datos;
-  if (!nombre.trim()) return false;
   const ctx = getContext('ccn');
   ctx.candidatos.push({
     id: newId(),
-    nombre: nombre.trim(),
+    nombre: nombre.trim() || '(sin nombre)',
     pacto: pacto || '—',
     votos: parseInt(votos) || 0,
     sexo: sexo || 'H',
@@ -596,6 +595,10 @@ function calcularCCN() {
 
   if (ctx.pactos.length === 0 || ctx.candidatos.length === 0) {
     output.appendChild(renderBanner('Ingresa al menos un pacto y un candidato antes de calcular.', 'err'));
+    return;
+  }
+  if (ctx.candidatos.some(c => c.nombre === '(sin nombre)')) {
+    output.appendChild(renderBanner('Falta nombre de candidato — edita las filas marcadas antes de calcular.', 'err'));
     return;
   }
 
@@ -830,11 +833,10 @@ window._saveCCRCandidato = function(regionId, id) {
 
 function addCCRCandidato(regionId, datos) {
   const { nombre, pacto, votos, sexo } = datos;
-  if (!nombre.trim()) return false;
   const ctx = getContext('ccr', regionId);
   ctx.candidatos.push({
     id: newId(),
-    nombre: nombre.trim(),
+    nombre: nombre.trim() || '(sin nombre)',
     pacto: pacto || '—',
     votos: parseInt(votos) || 0,
     sexo: sexo || 'H',
@@ -860,6 +862,10 @@ function calcularCCR(regionId) {
 
   if (ctx.pactos.length === 0 || ctx.candidatos.length === 0) {
     output.appendChild(renderBanner('Ingresa al menos un pacto y un candidato antes de calcular.', 'err'));
+    return;
+  }
+  if (ctx.candidatos.some(c => c.nombre === '(sin nombre)')) {
+    output.appendChild(renderBanner('Falta nombre de candidato — edita las filas marcadas antes de calcular.', 'err'));
     return;
   }
 

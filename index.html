@@ -205,6 +205,7 @@ const state = {
   ccr: Object.fromEntries(REGIONES.map(r => [r.id, emptyContext()])),
   ccrRegionActiva: REGIONES[0].id,
   jsEstimado: {},
+  tabActiva: 'ccn',
 };
 function getContext(tipo, regionId) {
   return tipo === 'ccn' ? state.ccn : state.ccr[regionId != null ? regionId : state.ccrRegionActiva];
@@ -220,7 +221,7 @@ function totalVotos(c) {
 // ── localStorage ──────────────────────────────────────────────────────────────
 const STORAGE_KEY = 'simulador_js_2026_v2';
 function saveState() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ccn: state.ccn, ccr: state.ccr, nextId, jsEstimado: state.jsEstimado })); } catch(e) {}
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ccn: state.ccn, ccr: state.ccr, nextId, jsEstimado: state.jsEstimado, tabActiva: state.tabActiva, ccrRegionActiva: state.ccrRegionActiva })); } catch(e) {}
 }
 function migrateCandidate(c) {
   if (c.votosBase === undefined) {
@@ -247,6 +248,8 @@ function loadState() {
     }
     if (s.nextId) nextId = s.nextId;
     if (s.jsEstimado) state.jsEstimado = s.jsEstimado;
+    if (s.tabActiva) state.tabActiva = s.tabActiva;
+    if (s.ccrRegionActiva) state.ccrRegionActiva = s.ccrRegionActiva;
   } catch(e) {}
 }
 function clearState() {
@@ -876,6 +879,8 @@ window._jeUpdate = function(regionId, lote, value) {
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 function switchTab(active) {
+  state.tabActiva = active;
+  saveState();
   var panels = { estimado: 'panel-estimado', ccn: 'panel-ccn', ccr: 'panel-ccr' };
   var tabs   = { estimado: 'tab-estimado',   ccn: 'tab-ccn',   ccr: 'tab-ccr'   };
   for (var key in panels) {
@@ -970,8 +975,12 @@ if(typeof LOTES!=='undefined'){
   });
 }
 initCCR();
+// Restaurar región activa en el selector CCR
+document.getElementById('ccr-region-sel').value = state.ccrRegionActiva;
 setupAutocompleteCCN();
 setupAutocompleteCCR();
+// Restaurar pestaña activa
+switchTab(state.tabActiva || 'ccn');
 </script>
 </body>
 </html>

@@ -930,7 +930,7 @@ document.getElementById('ccn-nombre').addEventListener('keydown',function(e){if(
 document.getElementById('ccn-calcular-est').addEventListener('click',function(){calcularCCN();});
 
 // ── CCR wiring ────────────────────────────────────────────────────────────────
-document.getElementById('ccr-region-sel').addEventListener('change',function(e){state.ccrRegionActiva=e.target.value;actualizarCCRRegion(e.target.value);});
+document.getElementById('ccr-region-sel').addEventListener('change',function(e){state.ccrRegionActiva=e.target.value;actualizarCCRRegion(e.target.value);saveState();});
 document.getElementById('ccr-add-pacto').addEventListener('click',function(){const i=document.getElementById('ccr-new-pacto');if(addCCRPacto(state.ccrRegionActiva,i.value))i.value='';});
 document.getElementById('ccr-new-pacto').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('ccr-add-pacto').click();});
 

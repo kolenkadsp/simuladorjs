@@ -736,7 +736,8 @@ window._removeCCRPacto=function(regionId,n){const ctx=getContext('ccr',regionId)
 function initCCR(){
   const sel=document.getElementById('ccr-region-sel');
   sel.innerHTML=REGIONES.map(r=>'<option value="'+r.id+'">'+r.nombre+' ('+r.cupos+' cupo'+(r.cupos>1?'s':'')+')</option>').join('');
-  actualizarCCRRegion(REGIONES[0].id);
+  sel.value = state.ccrRegionActiva;
+  actualizarCCRRegion(state.ccrRegionActiva);
 }
 function actualizarCCRRegion(regionId){
   const r=REGIONES.find(x=>x.id===regionId);

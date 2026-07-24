@@ -30,8 +30,19 @@
 /* Fila de candidatos — grid con anchos fijos para columnas numéricas */
 .cand-row {
   display: grid;
-  grid-template-columns: minmax(140px,2fr) minmax(90px,1.2fr) minmax(80px,1fr) minmax(70px,1fr) 58px 58px 58px 58px 62px 80px 26px;
+  grid-template-columns: 18px minmax(140px,2fr) minmax(90px,1.2fr) minmax(80px,1fr) minmax(70px,1fr) 58px 58px 58px 58px 62px 80px 26px;
   gap: 4px;
   align-items: center;
-  min-width: 700px;
+  min-width: 720px;
 }
+.drag-handle {
+  cursor: grab;
+  color: #9ca3af;
+  font-size: 14px;
+  text-align: center;
+  user-select: none;
+  line-height: 1;
+}
+.drag-handle:active { cursor: grabbing; }
+.cand-row.drag-over { border-top: 2px solid #3b82f6; }
+.cand-row.dragging  { opacity: 0.4; }

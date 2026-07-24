@@ -62,7 +62,7 @@
         <h2 class="font-bold text-lg mb-3">Candidatos</h2>
         <div class="overflow-x-auto">
           <div class="cand-row mb-2 text-xs font-semibold text-gray-500 uppercase">
-            <span>Nombre</span><span>Pacto</span><span>Lote</span><span>Comunal</span>
+            <span></span><span>Nombre</span><span>Pacto</span><span>Lote</span><span>Comunal</span>
             <span>V.Base</span><span>Cruz.1</span><span>Cruz.2</span><span>Cruz.3</span><span class="font-bold text-gray-700">Total</span>
             <span>Sexo</span><span></span>
           </div>
@@ -127,7 +127,7 @@
         <h2 class="font-bold text-lg mb-3">Candidatos</h2>
         <div class="overflow-x-auto">
           <div class="cand-row mb-2 text-xs font-semibold text-gray-500 uppercase">
-            <span>Nombre</span><span>Pacto</span><span>Lote</span><span>Comunal</span>
+            <span></span><span>Nombre</span><span>Pacto</span><span>Lote</span><span>Comunal</span>
             <span>V.Base</span><span>Cruz.1</span><span>Cruz.2</span><span>Cruz.3</span><span class="font-bold text-gray-700">Total</span>
             <span>Sexo</span><span></span>
           </div>
@@ -500,7 +500,12 @@ function filaInlineCCN(c, ctx) {
   const loteOpts  = lotes.map(l=>'<option value="'+l+'"'+(c.lote===l?' selected':'')+'>'+l+'</option>').join('');
   const ac = 'window._autoSaveCCNCandidato('+c.id+')';
   const enter = 'if(event.key===\'Enter\'){'+ac+';this.blur();}';
-  return '<div class="cand-row border-b py-0.5" data-id="'+c.id+'">'+
+  const ds='window._dragStart(event,\'ccn\',null,'+c.id+')';
+  const dv='window._dragOver(event,\'ccn\',null,'+c.id+')';
+  const dp='window._drop(event,\'ccn\',null,'+c.id+')';
+  const de='window._dragEnd(event)';
+  return '<div class="cand-row border-b py-0.5" data-id="'+c.id+'" draggable="true" ondragstart="'+ds+'" ondragover="'+dv+'" ondrop="'+dp+'" ondragend="'+de+'">'+
+    '<span class="drag-handle" title="Arrastrar para reordenar">⠿</span>'+
     '<input class="inline-cell w-full" id="ei-ccn-nombre-'+c.id+'" value="'+c.nombre+'" onchange="'+ac+'" onkeydown="'+enter+'">'+
     '<select class="inline-cell w-full" id="ei-ccn-pacto-'+c.id+'" onchange="'+ac+'"><option value="">—</option>'+pactoOpts+'</select>'+
     '<select class="inline-cell w-full" id="ei-ccn-lote-'+c.id+'" onchange="'+ac+'"><option value="">—</option>'+loteOpts+'</select>'+
@@ -609,7 +614,12 @@ function filaInlineCCR(c, ctx, regionId) {
   const loteOpts=lotes.map(l=>'<option value="'+l+'"'+(c.lote===l?' selected':'')+'>'+l+'</option>').join('');
   const ac='window._autoSaveCCRCandidato(\''+regionId+'\','+c.id+')';
   const enter='if(event.key===\'Enter\'){'+ac+';this.blur();}';
-  return '<div class="cand-row border-b py-0.5" data-id="'+c.id+'">'+
+  const ds='window._dragStart(event,\'ccr\',\''+regionId+'\','+c.id+')';
+  const dv='window._dragOver(event,\'ccr\',\''+regionId+'\','+c.id+')';
+  const dp='window._drop(event,\'ccr\',\''+regionId+'\','+c.id+')';
+  const de='window._dragEnd(event)';
+  return '<div class="cand-row border-b py-0.5" data-id="'+c.id+'" draggable="true" ondragstart="'+ds+'" ondragover="'+dv+'" ondrop="'+dp+'" ondragend="'+de+'">'+
+    '<span class="drag-handle" title="Arrastrar para reordenar">⠿</span>'+
     '<input class="inline-cell w-full" id="ei-ccr-nombre-'+c.id+'" value="'+c.nombre+'" onchange="'+ac+'" onkeydown="'+enter+'">'+
     '<select class="inline-cell w-full" id="ei-ccr-pacto-'+c.id+'" onchange="'+ac+'"><option value="">—</option>'+pactoOpts+'</select>'+
     '<select class="inline-cell w-full" id="ei-ccr-lote-'+c.id+'" onchange="'+ac+'"><option value="">—</option>'+loteOpts+'</select>'+
@@ -828,6 +838,39 @@ window._jeUpdate = function(regionId, lote, value) {
   if (rowCell) rowCell.textContent = rowTotal;
   renderJsEstimadoTotals();
   saveState();
+};
+
+// ── Drag & Drop reordering ────────────────────────────────────────────────────
+var _drag = { id: null, tipo: null, regionId: null };
+window._dragStart = function(e, tipo, regionId, id) {
+  _drag = { id: id, tipo: tipo, regionId: regionId };
+  e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.classList.add('dragging');
+};
+window._dragEnd = function(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.drag-over').forEach(function(el){ el.classList.remove('drag-over'); });
+};
+window._dragOver = function(e, tipo, regionId, id) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  if (id === _drag.id) return;
+  document.querySelectorAll('.drag-over').forEach(function(el){ el.classList.remove('drag-over'); });
+  e.currentTarget.classList.add('drag-over');
+};
+window._drop = function(e, tipo, regionId, targetId) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (_drag.id === targetId) return;
+  var ctx = getContext(tipo, regionId);
+  var srcIdx = ctx.candidatos.findIndex(function(c){ return c.id === _drag.id; });
+  var tgtIdx = ctx.candidatos.findIndex(function(c){ return c.id === targetId; });
+  if (srcIdx === -1 || tgtIdx === -1) return;
+  var item = ctx.candidatos.splice(srcIdx, 1)[0];
+  ctx.candidatos.splice(tgtIdx, 0, item);
+  saveState();
+  if (tipo === 'ccn') renderCCNCandidatos();
+  else renderCCRCandidatos(regionId);
 };
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────

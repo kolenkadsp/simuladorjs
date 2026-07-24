@@ -36,7 +36,13 @@
     <div id="panel-estimado" class="hidden">
       <section class="mb-6 bg-white rounded-lg shadow p-4">
         <h2 class="font-bold text-lg mb-1">JS Estimado por Lote</h2>
-        <p class="text-xs text-gray-500 mb-4">Estimación de votos JS por región y lote. Los valores son editables y se guardan automáticamente. Sirve para orientar la configuración de listas PS.</p>
+        <p class="text-xs text-gray-500 mb-3">Estimación de votos JS por región y lote. Los valores son editables y se guardan automáticamente. Sirve para orientar la configuración de listas PS.</p>
+        <div class="flex items-center gap-3 mb-4">
+          <label class="text-sm font-semibold">Región:</label>
+          <select id="je-region-sel" class="border rounded px-3 py-1 text-sm">
+            <option value="">— Todas las regiones —</option>
+          </select>
+        </div>
         <div id="je-container" class="overflow-x-auto"></div>
       </section>
     </div>
@@ -797,6 +803,12 @@ function initJsEstimado() {
 
 function buildJsEstimadoTable() {
   const lotes = typeof LOTES !== 'undefined' ? LOTES : [];
+  // Poblar selector de región
+  const sel = document.getElementById('je-region-sel');
+  sel.innerHTML = '<option value="">— Todas las regiones —</option>' +
+    REGIONES.map(r => '<option value="'+r.id+'">'+r.nombre+'</option>').join('');
+  sel.addEventListener('change', function() { renderJsEstimadoRows(); });
+
   const container = document.getElementById('je-container');
   container.innerHTML =
     '<table class="text-xs border-collapse w-full">' +
@@ -815,7 +827,9 @@ function renderJsEstimadoRows() {
   const lotes = typeof LOTES !== 'undefined' ? LOTES : [];
   const tbody = document.getElementById('je-tbody');
   if (!tbody) return;
-  tbody.innerHTML = REGIONES.map(function(r) {
+  const filtroId = (document.getElementById('je-region-sel')||{}).value || '';
+  const regiones = filtroId ? REGIONES.filter(r => r.id === filtroId) : REGIONES;
+  tbody.innerHTML = regiones.map(function(r) {
     const rowTotal = lotes.reduce(function(s,l){ return s + (parseInt(state.jsEstimado[r.id]&&state.jsEstimado[r.id][l])||0); }, 0);
     return '<tr class="hover:bg-gray-50">' +
       '<td class="border px-2 py-1 font-medium whitespace-nowrap">'+r.nombre+'</td>' +
@@ -836,8 +850,10 @@ function renderJsEstimadoTotals() {
   const lotes = typeof LOTES !== 'undefined' ? LOTES : [];
   const tfoot = document.getElementById('je-tfoot');
   if (!tfoot) return;
+  const filtroId = (document.getElementById('je-region-sel')||{}).value || '';
+  const regiones = filtroId ? REGIONES.filter(r => r.id === filtroId) : REGIONES;
   const colTotals = lotes.map(function(l){
-    return REGIONES.reduce(function(s,r){ return s + (parseInt(state.jsEstimado[r.id]&&state.jsEstimado[r.id][l])||0); }, 0);
+    return regiones.reduce(function(s,r){ return s + (parseInt(state.jsEstimado[r.id]&&state.jsEstimado[r.id][l])||0); }, 0);
   });
   const grandTotal = colTotals.reduce(function(a,b){ return a+b; }, 0);
   tfoot.innerHTML = '<tr class="bg-gray-100 font-bold">' +

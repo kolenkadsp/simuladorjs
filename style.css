@@ -14,6 +14,19 @@
 .banner-ok   { background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px; padding: 8px 12px; font-size: 0.875rem; color: #166534; margin-bottom: 12px; }
 .banner-err  { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px; padding: 8px 12px; font-size: 0.875rem; color: #991b1b; margin-bottom: 12px; }
 
+/* Input inline en filas de candidatos — sin borde hasta el foco */
+.inline-cell {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
+  padding: 1px 4px;
+  font-size: 0.75rem;
+  outline: none;
+}
+.inline-cell:hover { border-bottom-color: #d1d5db; }
+.inline-cell:focus { border-bottom-color: #3b82f6; background: #eff6ff; }
+
 /* Fila de candidatos — grid con anchos fijos para columnas numéricas */
 .cand-row {
   display: grid;

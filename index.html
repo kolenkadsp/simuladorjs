@@ -489,7 +489,7 @@ function filaViewCCN(c, ctx) {
   const tot = totalVotos(c);
   return '<div class="cand-row text-sm border-b py-0.5 cursor-pointer hover:bg-gray-50 select-none"'+
     ' data-id="'+c.id+'" onclick="window._editCCNCandidato('+c.id+')" title="Clic para editar">'+
-    '<span class="col-span-2 truncate">'+c.nombre+'</span>'+
+    '<span class="truncate font-medium">'+c.nombre+'</span>'+
     '<span class="truncate">'+c.pacto+'</span>'+
     '<span class="truncate text-xs">'+(c.lote||'')+'</span>'+
     '<span class="truncate text-xs">'+(c.comunal||'')+'</span>'+
@@ -498,7 +498,7 @@ function filaViewCCN(c, ctx) {
     '<span class="text-center text-gray-500">'+(c.vCruz2||0)+'</span>'+
     '<span class="text-center text-gray-500">'+(c.vCruz3||0)+'</span>'+
     '<span class="text-center font-semibold">'+tot+'</span>'+
-    '<span>'+(c.sexo==='H'?'Hombre':'Mujer')+'</span>'+
+    '<span class="text-xs">'+(c.sexo==='H'?'H':'M')+'</span>'+
     '<span><button class="text-red-400 hover:text-red-600" onclick="event.stopPropagation();window._removeCCNCandidato('+c.id+')">×</button></span>'+
   '</div>';
 }
@@ -508,7 +508,7 @@ function filaEditCCN(c, ctx) {
   const loteOpts  = lotes.map(l=>'<option value="'+l+'"'+(c.lote===l?' selected':'')+'>'+l+'</option>').join('');
   const ac = 'window._autoSaveCCNCandidato('+c.id+')';
   return '<div class="cand-row text-sm border-b py-0.5 bg-blue-50" data-id="'+c.id+'">'+
-    '<input class="col-span-2 border rounded px-1 text-xs" id="ei-ccn-nombre-'+c.id+'" value="'+c.nombre+'" onchange="'+ac+'">'+
+    '<input class="border rounded px-1 text-xs w-full" id="ei-ccn-nombre-'+c.id+'" value="'+c.nombre+'" onchange="'+ac+'">'+
     '<select class="border rounded px-1 text-xs" id="ei-ccn-pacto-'+c.id+'" onchange="'+ac+'"><option value="">—</option>'+pactoOpts+'</select>'+
     '<select class="border rounded px-1 text-xs" id="ei-ccn-lote-'+c.id+'" onchange="'+ac+'"><option value="">—</option>'+loteOpts+'</select>'+
     '<input class="border rounded px-1 text-xs" id="ei-ccn-comunal-'+c.id+'" value="'+(c.comunal||'')+'" onchange="'+ac+'">'+
@@ -622,7 +622,7 @@ function filaViewCCR(c, ctx, regionId) {
   const tot = totalVotos(c);
   return '<div class="cand-row text-sm border-b py-0.5 cursor-pointer hover:bg-gray-50 select-none"'+
     ' data-id="'+c.id+'" onclick="window._editCCRCandidato(\''+regionId+'\','+c.id+')" title="Clic para editar">'+
-    '<span class="col-span-2 truncate">'+c.nombre+'</span>'+
+    '<span class="truncate font-medium">'+c.nombre+'</span>'+
     '<span class="truncate">'+c.pacto+'</span>'+
     '<span class="truncate text-xs">'+(c.lote||'')+'</span>'+
     '<span class="truncate text-xs">'+(c.comunal||'')+'</span>'+
@@ -631,7 +631,7 @@ function filaViewCCR(c, ctx, regionId) {
     '<span class="text-center text-gray-500">'+(c.vCruz2||0)+'</span>'+
     '<span class="text-center text-gray-500">'+(c.vCruz3||0)+'</span>'+
     '<span class="text-center font-semibold">'+tot+'</span>'+
-    '<span>'+(c.sexo==='H'?'Hombre':'Mujer')+'</span>'+
+    '<span class="text-xs">'+(c.sexo==='H'?'H':'M')+'</span>'+
     '<span><button class="text-red-400 hover:text-red-600" onclick="event.stopPropagation();window._removeCCRCandidato(\''+regionId+'\','+c.id+')">×</button></span>'+
   '</div>';
 }
@@ -641,7 +641,7 @@ function filaEditCCR(c, ctx, regionId) {
   const loteOpts=lotes.map(l=>'<option value="'+l+'"'+(c.lote===l?' selected':'')+'>'+l+'</option>').join('');
   const ac='window._autoSaveCCRCandidato(\''+regionId+'\','+c.id+')';
   return '<div class="cand-row text-sm border-b py-0.5 bg-blue-50" data-id="'+c.id+'">'+
-    '<input class="col-span-2 border rounded px-1 text-xs" id="ei-ccr-nombre-'+c.id+'" value="'+c.nombre+'" onchange="'+ac+'">'+
+    '<input class="border rounded px-1 text-xs w-full" id="ei-ccr-nombre-'+c.id+'" value="'+c.nombre+'" onchange="'+ac+'">'+
     '<select class="border rounded px-1 text-xs" id="ei-ccr-pacto-'+c.id+'" onchange="'+ac+'"><option value="">—</option>'+pactoOpts+'</select>'+
     '<select class="border rounded px-1 text-xs" id="ei-ccr-lote-'+c.id+'" onchange="'+ac+'"><option value="">—</option>'+loteOpts+'</select>'+
     '<input class="border rounded px-1 text-xs" id="ei-ccr-comunal-'+c.id+'" value="'+(c.comunal||'')+'" onchange="'+ac+'">'+

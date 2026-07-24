@@ -55,8 +55,8 @@
       <section class="mb-6 bg-white rounded-lg shadow p-4">
         <h2 class="font-bold text-lg mb-3">Candidatos</h2>
         <div class="overflow-x-auto">
-          <div class="grid grid-cols-12 gap-1 mb-2 text-xs font-semibold text-gray-500 uppercase min-w-max">
-            <span class="col-span-2">Nombre</span><span>Pacto</span><span>Lote</span><span>Comunal</span>
+          <div class="cand-row mb-2 text-xs font-semibold text-gray-500 uppercase">
+            <span>Nombre</span><span>Pacto</span><span>Lote</span><span>Comunal</span>
             <span>V.Base</span><span>Cruz.1</span><span>Cruz.2</span><span>Cruz.3</span><span class="font-bold text-gray-700">Total</span>
             <span>Sexo</span><span></span>
           </div>
@@ -68,23 +68,23 @@
             class="border rounded px-2 py-1 text-sm w-full">
           <div id="ccn-ac-drop" class="hidden absolute left-0 right-0 bg-white border rounded shadow-lg z-20 max-h-48 overflow-y-auto text-sm"></div>
         </div>
-        <div class="grid grid-cols-9 gap-1">
-          <select id="ccn-pacto-sel" class="border rounded px-1 py-1 text-sm">
+        <div class="flex gap-1 flex-wrap items-center">
+          <select id="ccn-pacto-sel" class="border rounded px-1 py-1 text-sm w-32">
             <option value="">— Pacto —</option>
           </select>
-          <select id="ccn-lote-sel" class="border rounded px-1 py-1 text-sm">
+          <select id="ccn-lote-sel" class="border rounded px-1 py-1 text-sm w-32">
             <option value="">— Lote —</option>
           </select>
-          <input id="ccn-comunal" type="text" placeholder="Comunal" class="border rounded px-1 py-1 text-sm">
-          <input id="ccn-vbase"  type="number" min="0" placeholder="V.Base"  class="border rounded px-1 py-1 text-sm">
-          <input id="ccn-vcruz1" type="number" min="0" placeholder="Cruz.1"  class="border rounded px-1 py-1 text-sm">
-          <input id="ccn-vcruz2" type="number" min="0" placeholder="Cruz.2"  class="border rounded px-1 py-1 text-sm">
-          <input id="ccn-vcruz3" type="number" min="0" placeholder="Cruz.3"  class="border rounded px-1 py-1 text-sm">
-          <select id="ccn-sexo" class="border rounded px-1 py-1 text-sm">
+          <input id="ccn-comunal" type="text" placeholder="Comunal" class="border rounded px-1 py-1 text-sm w-24">
+          <input id="ccn-vbase"  type="number" min="0" placeholder="V.Base"  class="border rounded px-1 py-1 text-sm w-16">
+          <input id="ccn-vcruz1" type="number" min="0" placeholder="Cruz.1"  class="border rounded px-1 py-1 text-sm w-16">
+          <input id="ccn-vcruz2" type="number" min="0" placeholder="Cruz.2"  class="border rounded px-1 py-1 text-sm w-16">
+          <input id="ccn-vcruz3" type="number" min="0" placeholder="Cruz.3"  class="border rounded px-1 py-1 text-sm w-16">
+          <select id="ccn-sexo" class="border rounded px-1 py-1 text-sm w-24">
             <option value="H">Hombre</option>
             <option value="M">Mujer</option>
           </select>
-          <button id="ccn-add-candidato" class="bg-gray-700 text-white px-2 py-1 rounded text-sm hover:bg-gray-800">
+          <button id="ccn-add-candidato" class="bg-gray-700 text-white px-3 py-1 rounded text-sm hover:bg-gray-800 whitespace-nowrap">
             + Agregar (Enter)
           </button>
         </div>
@@ -120,8 +120,8 @@
       <section class="mb-6 bg-white rounded-lg shadow p-4">
         <h2 class="font-bold text-lg mb-3">Candidatos</h2>
         <div class="overflow-x-auto">
-          <div class="grid grid-cols-12 gap-1 mb-2 text-xs font-semibold text-gray-500 uppercase min-w-max">
-            <span class="col-span-2">Nombre</span><span>Pacto</span><span>Lote</span><span>Comunal</span>
+          <div class="cand-row mb-2 text-xs font-semibold text-gray-500 uppercase">
+            <span>Nombre</span><span>Pacto</span><span>Lote</span><span>Comunal</span>
             <span>V.Base</span><span>Cruz.1</span><span>Cruz.2</span><span>Cruz.3</span><span class="font-bold text-gray-700">Total</span>
             <span>Sexo</span><span></span>
           </div>
@@ -132,23 +132,23 @@
             class="border rounded px-2 py-1 text-sm w-full">
           <div id="ccr-ac-drop" class="hidden absolute left-0 right-0 bg-white border rounded shadow-lg z-20 max-h-48 overflow-y-auto text-sm"></div>
         </div>
-        <div class="grid grid-cols-9 gap-1">
-          <select id="ccr-pacto-sel" class="border rounded px-1 py-1 text-sm">
+        <div class="flex gap-1 flex-wrap items-center">
+          <select id="ccr-pacto-sel" class="border rounded px-1 py-1 text-sm w-32">
             <option value="">— Pacto —</option>
           </select>
-          <select id="ccr-lote-sel" class="border rounded px-1 py-1 text-sm">
+          <select id="ccr-lote-sel" class="border rounded px-1 py-1 text-sm w-32">
             <option value="">— Lote —</option>
           </select>
-          <input id="ccr-comunal" type="text" placeholder="Comunal" class="border rounded px-1 py-1 text-sm">
-          <input id="ccr-vbase"  type="number" min="0" placeholder="V.Base"  class="border rounded px-1 py-1 text-sm">
-          <input id="ccr-vcruz1" type="number" min="0" placeholder="Cruz.1"  class="border rounded px-1 py-1 text-sm">
-          <input id="ccr-vcruz2" type="number" min="0" placeholder="Cruz.2"  class="border rounded px-1 py-1 text-sm">
-          <input id="ccr-vcruz3" type="number" min="0" placeholder="Cruz.3"  class="border rounded px-1 py-1 text-sm">
-          <select id="ccr-sexo" class="border rounded px-1 py-1 text-sm">
+          <input id="ccr-comunal" type="text" placeholder="Comunal" class="border rounded px-1 py-1 text-sm w-24">
+          <input id="ccr-vbase"  type="number" min="0" placeholder="V.Base"  class="border rounded px-1 py-1 text-sm w-16">
+          <input id="ccr-vcruz1" type="number" min="0" placeholder="Cruz.1"  class="border rounded px-1 py-1 text-sm w-16">
+          <input id="ccr-vcruz2" type="number" min="0" placeholder="Cruz.2"  class="border rounded px-1 py-1 text-sm w-16">
+          <input id="ccr-vcruz3" type="number" min="0" placeholder="Cruz.3"  class="border rounded px-1 py-1 text-sm w-16">
+          <select id="ccr-sexo" class="border rounded px-1 py-1 text-sm w-24">
             <option value="H">Hombre</option>
             <option value="M">Mujer</option>
           </select>
-          <button id="ccr-add-candidato" class="bg-gray-700 text-white px-2 py-1 rounded text-sm hover:bg-gray-800">
+          <button id="ccr-add-candidato" class="bg-gray-700 text-white px-3 py-1 rounded text-sm hover:bg-gray-800 whitespace-nowrap">
             + Agregar (Enter)
           </button>
         </div>
@@ -487,7 +487,7 @@ function renderIndicadorParidad(electos, totalCupos) {
 // ── CCN candidatos ────────────────────────────────────────────────────────────
 function filaViewCCN(c, ctx) {
   const tot = totalVotos(c);
-  return '<div class="grid grid-cols-12 gap-1 text-sm items-center border-b py-0.5 cursor-pointer hover:bg-gray-50 select-none min-w-max"'+
+  return '<div class="cand-row text-sm border-b py-0.5 cursor-pointer hover:bg-gray-50 select-none"'+
     ' data-id="'+c.id+'" onclick="window._editCCNCandidato('+c.id+')" title="Clic para editar">'+
     '<span class="col-span-2 truncate">'+c.nombre+'</span>'+
     '<span class="truncate">'+c.pacto+'</span>'+
@@ -507,7 +507,7 @@ function filaEditCCN(c, ctx) {
   const pactoOpts = ctx.pactos.map(p=>'<option value="'+p+'"'+(c.pacto===p?' selected':'')+'>'+p+'</option>').join('');
   const loteOpts  = lotes.map(l=>'<option value="'+l+'"'+(c.lote===l?' selected':'')+'>'+l+'</option>').join('');
   const ac = 'window._autoSaveCCNCandidato('+c.id+')';
-  return '<div class="grid grid-cols-12 gap-1 text-sm items-center border-b py-0.5 bg-blue-50 min-w-max" data-id="'+c.id+'">'+
+  return '<div class="cand-row text-sm border-b py-0.5 bg-blue-50" data-id="'+c.id+'">'+
     '<input class="col-span-2 border rounded px-1 text-xs" id="ei-ccn-nombre-'+c.id+'" value="'+c.nombre+'" onchange="'+ac+'">'+
     '<select class="border rounded px-1 text-xs" id="ei-ccn-pacto-'+c.id+'" onchange="'+ac+'"><option value="">—</option>'+pactoOpts+'</select>'+
     '<select class="border rounded px-1 text-xs" id="ei-ccn-lote-'+c.id+'" onchange="'+ac+'"><option value="">—</option>'+loteOpts+'</select>'+
@@ -620,7 +620,7 @@ function calcularCCN() {
 // ── CCR candidatos ────────────────────────────────────────────────────────────
 function filaViewCCR(c, ctx, regionId) {
   const tot = totalVotos(c);
-  return '<div class="grid grid-cols-12 gap-1 text-sm items-center border-b py-0.5 cursor-pointer hover:bg-gray-50 select-none min-w-max"'+
+  return '<div class="cand-row text-sm border-b py-0.5 cursor-pointer hover:bg-gray-50 select-none"'+
     ' data-id="'+c.id+'" onclick="window._editCCRCandidato(\''+regionId+'\','+c.id+')" title="Clic para editar">'+
     '<span class="col-span-2 truncate">'+c.nombre+'</span>'+
     '<span class="truncate">'+c.pacto+'</span>'+
@@ -640,7 +640,7 @@ function filaEditCCR(c, ctx, regionId) {
   const pactoOpts=ctx.pactos.map(p=>'<option value="'+p+'"'+(c.pacto===p?' selected':'')+'>'+p+'</option>').join('');
   const loteOpts=lotes.map(l=>'<option value="'+l+'"'+(c.lote===l?' selected':'')+'>'+l+'</option>').join('');
   const ac='window._autoSaveCCRCandidato(\''+regionId+'\','+c.id+')';
-  return '<div class="grid grid-cols-12 gap-1 text-sm items-center border-b py-0.5 bg-blue-50 min-w-max" data-id="'+c.id+'">'+
+  return '<div class="cand-row text-sm border-b py-0.5 bg-blue-50" data-id="'+c.id+'">'+
     '<input class="col-span-2 border rounded px-1 text-xs" id="ei-ccr-nombre-'+c.id+'" value="'+c.nombre+'" onchange="'+ac+'">'+
     '<select class="border rounded px-1 text-xs" id="ei-ccr-pacto-'+c.id+'" onchange="'+ac+'"><option value="">—</option>'+pactoOpts+'</select>'+
     '<select class="border rounded px-1 text-xs" id="ei-ccr-lote-'+c.id+'" onchange="'+ac+'"><option value="">—</option>'+loteOpts+'</select>'+

@@ -201,15 +201,17 @@ const CCR_VOTOS_ELECTOR = 4;
 
 function emptyContext() { return { pactos: [], candidatos: [] }; }
 function emptyRegionCCR() { return { escenarios: [{ nombre: 'Escenario 1', pactos: [], candidatos: [] }], escenarioActivo: 0 }; }
+function emptyRegionCCN() { return { escenarios: [{ nombre: 'Escenario 1', pactos: [], candidatos: [] }], escenarioActivo: 0, cruzNames: ['Cruz.1','Cruz.2','Cruz.3'] }; }
 const state = {
-  ccn: emptyContext(),
+  ccn: emptyRegionCCN(),
   ccr: Object.fromEntries(REGIONES.map(r => [r.id, emptyRegionCCR()])),
   ccrRegionActiva: REGIONES[0].id,
+  ccrCruzNames: ['Cruz.1','Cruz.2','Cruz.3'],
   jsEstimado: {},
   tabActiva: 'ccn',
-  cruzNames: ['Cruz.1', 'Cruz.2', 'Cruz.3'],
   direccion: {
     pactos: [],
+    cruzNames: ['Cruz.1','Cruz.2','Cruz.3'],
     presidente:      { candidatos: [] },
     secGeneral:      { candidatos: [] },
     vpMujer:         { candidatos: [] },
@@ -217,13 +219,17 @@ const state = {
   },
 };
 function getContext(tipo, regionId) {
-  if (tipo === 'ccn') return state.ccn;
+  if (tipo === 'ccn') return state.ccn.escenarios[state.ccn.escenarioActivo || 0];
   const rid = regionId != null ? regionId : state.ccrRegionActiva;
   const reg = state.ccr[rid];
   if (!reg) return emptyContext();
-  // Support both new {escenarios} format and old {pactos,candidatos} format
   if (reg.escenarios) return reg.escenarios[reg.escenarioActivo || 0];
   return reg;
+}
+function getCruzNames(tipo) {
+  if (tipo === 'ccn') return state.ccn.cruzNames;
+  if (tipo === 'ccr') return state.ccrCruzNames;
+  return state.direccion.cruzNames;
 }
 let nextId = 1;
 function newId() { return nextId++; }

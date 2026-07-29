@@ -14,9 +14,18 @@
       <h1 class="text-2xl font-bold">Simulador Elecciones JS 2026</h1>
       <p class="text-sm opacity-80">Juventud Socialista de Chile</p>
     </div>
-    <button onclick="clearState()" class="bg-red-900 hover:bg-red-950 text-white text-sm px-3 py-1 rounded opacity-80 hover:opacity-100">
-      🗑 Borrar datos
-    </button>
+    <div class="flex items-center gap-2">
+      <button onclick="downloadData()" class="bg-red-800 hover:bg-red-900 text-white text-sm px-3 py-1 rounded opacity-80 hover:opacity-100">
+        ⬇ Descargar
+      </button>
+      <button onclick="document.getElementById('upload-input').click()" class="bg-red-800 hover:bg-red-900 text-white text-sm px-3 py-1 rounded opacity-80 hover:opacity-100">
+        ⬆ Cargar
+      </button>
+      <input id="upload-input" type="file" accept=".json" class="hidden" onchange="uploadData(event)">
+      <button onclick="clearState()" class="bg-red-900 hover:bg-red-950 text-white text-sm px-3 py-1 rounded opacity-80 hover:opacity-100">
+        🗑 Borrar datos
+      </button>
+    </div>
   </header>
 
   <div class="max-w-7xl mx-auto mt-6 px-4">
@@ -467,6 +476,34 @@ function clearState() {
   if (!confirm('¿Borrar todos los datos ingresados?')) return;
   localStorage.removeItem(STORAGE_KEY);
   location.reload();
+}
+
+function downloadData() {
+  const data = { ccn: state.ccn, ccr: state.ccr, ccrCruzNames: state.ccrCruzNames, nextId, jsEstimado: state.jsEstimado, tabActiva: state.tabActiva, ccrRegionActiva: state.ccrRegionActiva, direccion: state.direccion };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const fecha = new Date().toISOString().slice(0,10);
+  a.href = url; a.download = 'simulador_js_2026_' + fecha + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function uploadData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      location.reload();
+    } catch(err) {
+      alert('Archivo inválido. Asegúrate de subir un archivo descargado desde esta aplicación.');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
 }
 
 // ── dhondt ────────────────────────────────────────────────────────────────────

@@ -718,7 +718,7 @@ function filaInlineCCN(c, ctx) {
     '<select class="inline-cell w-full" id="ei-ccn-lote-'+c.id+'" onchange="'+ac+'"><option value="">—</option>'+loteOpts+'</select>'+
     '<input class="inline-cell w-full" id="ei-ccn-comunal-'+c.id+'" value="'+(c.comunal||'')+'" onchange="'+ac+'" onkeydown="'+enter+'">'+
     '<input type="number" class="inline-cell w-full text-center" id="ei-ccn-vbase-'+c.id+'" value="'+(c.votosBase||0)+'" onchange="'+ac+'" oninput="window._updateTotalCCN('+c.id+')" onkeydown="'+enter+'">'+
-    _cruzInlineInputs(c,'ccn',ac,enter,'window._updateTotalCCN')+
+    _cruzInlineInputs(c,'ccn',ac,enter,'window._updateTotalCCN',state.ccn.cruzNames)+
     '<span class="text-center font-semibold text-xs px-1" id="ei-ccn-total-'+c.id+'">'+totalVotos(c)+'</span>'+
     '<select class="inline-cell w-full" id="ei-ccn-sexo-'+c.id+'" onchange="'+ac+'">'+
       '<option value="H"'+(c.sexo==='H'?' selected':'')+'>H</option>'+
@@ -728,7 +728,7 @@ function filaInlineCCN(c, ctx) {
   '</div>';
 }
 window._updateTotalCCN = function(id) {
-  const tot = _calcTotalFromInputs('ccn', id);
+  const tot = _calcTotalFromInputs('ccn', id, state.ccn.cruzNames.length);
   const el=document.getElementById('ei-ccn-total-'+id); if(el) el.textContent=tot;
 };
 function renderCCNCandidatos() {
@@ -737,7 +737,7 @@ function renderCCNCandidatos() {
   lista.innerHTML = ctx.candidatos.length===0
     ? '<p class="text-sm text-gray-400">Sin candidatos aún.</p>'
     : ctx.candidatos.map(c=>filaInlineCCN(c,ctx)).join('');
-  _renderTotalsEl('ccn-cands-totals', ctx.candidatos);
+  _renderTotalsEl('ccn-cands-totals', ctx.candidatos, state.ccn.cruzNames);
 }
 window._autoSaveCCNCandidato = function(id) {
   const ctx=getContext('ccn'), c=ctx.candidatos.find(x=>x.id===id);
@@ -748,11 +748,11 @@ window._autoSaveCCNCandidato = function(id) {
   const l=g('ei-ccn-lote-'+id); if(l!==null) c.lote=l;
   const com=g('ei-ccn-comunal-'+id); if(com!==null) c.comunal=com.trim().toUpperCase();
   const vb=g('ei-ccn-vbase-'+id); if(vb!==null) c.votosBase=parseInt(vb)||0;
-  c.cruces = _readCruces('ccn', id);
+  c.cruces = _readCruces('ccn', id, state.ccn.cruzNames.length);
   const s=g('ei-ccn-sexo-'+id); if(s!==null) c.sexo=s;
   const totEl=document.getElementById('ei-ccn-total-'+id);
   if(totEl) totEl.textContent=totalVotos(c);
-  _renderTotalsEl('ccn-cands-totals', getContext('ccn').candidatos);
+  _renderTotalsEl('ccn-cands-totals', getContext('ccn').candidatos, state.ccn.cruzNames);
   saveState();
 };
 window._removeCCNCandidato = function(id) {
@@ -764,7 +764,8 @@ function addCCNCandidato(datos) {
   ctx.candidatos.push({ id:newId(), nombre:datos.nombre.trim()||'(sin nombre)',
     pacto:datos.pacto||'—', lote:datos.lote||'', comunal:(datos.comunal||'').toUpperCase(),
     votosBase:parseInt(datos.vbase)||0,
-    cruces:(datos.cruces||[]).map(function(v){return parseInt(v)||0;}),
+    cruces:(function(){ const n=state.ccn.cruzNames.length,src=(datos.cruces||[]);
+      return Array.from({length:n},function(_,i){return parseInt(src[i])||0;}); })(),
     sexo:datos.sexo||'H' });
   renderCCNCandidatos(); saveState();
   document.getElementById('ccn-resultado-output').classList.add('hidden');
@@ -1185,13 +1186,13 @@ function doAddCCN(){
     lote:    document.getElementById('ccn-lote-sel').value,
     comunal: document.getElementById('ccn-comunal').value,
     vbase:   document.getElementById('ccn-vbase').value,
-    cruces:  _readCruzAddForm('ccn'),
+    cruces:  _readCruzAddForm('ccn', state.ccn.cruzNames.length),
     sexo:    document.getElementById('ccn-sexo').value,
   });
   if(ok){
     document.getElementById('ccn-nombre').value='';
     document.getElementById('ccn-vbase').value='';
-    _clearCruzAddForm('ccn');
+    _clearCruzAddForm('ccn', state.ccn.cruzNames.length);
     document.getElementById('ccn-comunal').value='';
   }
 }

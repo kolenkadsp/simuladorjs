@@ -830,7 +830,7 @@ function filaInlineCCR(c, ctx, regionId) {
     '<select class="inline-cell w-full" id="ei-ccr-lote-'+c.id+'" onchange="'+ac+'"><option value="">—</option>'+loteOpts+'</select>'+
     '<input class="inline-cell w-full" id="ei-ccr-comunal-'+c.id+'" value="'+(c.comunal||'')+'" onchange="'+ac+'" onkeydown="'+enter+'">'+
     '<input type="number" class="inline-cell w-full text-center" id="ei-ccr-vbase-'+c.id+'" value="'+(c.votosBase||0)+'" onchange="'+ac+'" oninput="window._updateTotalCCR(\''+regionId+'\','+c.id+')" onkeydown="'+enter+'">'+
-    _cruzInlineInputs(c,'ccr',ac,enter,'window._updateTotalCCR.bind(null,\''+regionId+'\')')+
+    _cruzInlineInputs(c,'ccr',ac,enter,'window._updateTotalCCR.bind(null,\''+regionId+'\')',state.ccrCruzNames)+
     '<span class="text-center font-semibold text-xs px-1" id="ei-ccr-total-'+c.id+'">'+totalVotos(c)+'</span>'+
     '<select class="inline-cell w-full" id="ei-ccr-sexo-'+c.id+'" onchange="'+ac+'">'+
       '<option value="H"'+(c.sexo==='H'?' selected':'')+'>H</option>'+
@@ -840,7 +840,7 @@ function filaInlineCCR(c, ctx, regionId) {
   '</div>';
 }
 window._updateTotalCCR = function(regionId, id) {
-  const tot = _calcTotalFromInputs('ccr', id);
+  const tot = _calcTotalFromInputs('ccr', id, state.ccrCruzNames.length);
   const el=document.getElementById('ei-ccr-total-'+id); if(el) el.textContent=tot;
 };
 function renderCCRCandidatos(regionId) {
@@ -848,7 +848,7 @@ function renderCCRCandidatos(regionId) {
   const lista=document.getElementById('ccr-candidatos-list');
   if(!ctx.candidatos.length){lista.innerHTML='<p class="text-sm text-gray-400">Sin candidatos aún.</p>';}
   else lista.innerHTML=ctx.candidatos.map(c=>filaInlineCCR(c,ctx,regionId)).join('');
-  _renderTotalsEl('ccr-cands-totals', ctx.candidatos);
+  _renderTotalsEl('ccr-cands-totals', ctx.candidatos, state.ccrCruzNames);
 }
 window._autoSaveCCRCandidato=function(regionId,id){
   const ctx=getContext('ccr',regionId),c=ctx.candidatos.find(x=>x.id===id);
@@ -859,11 +859,11 @@ window._autoSaveCCRCandidato=function(regionId,id){
   const l=g('ei-ccr-lote-'+id); if(l!==null) c.lote=l;
   const com=g('ei-ccr-comunal-'+id); if(com!==null) c.comunal=com.trim().toUpperCase();
   const vb=g('ei-ccr-vbase-'+id); if(vb!==null) c.votosBase=parseInt(vb)||0;
-  c.cruces = _readCruces('ccr', id);
+  c.cruces = _readCruces('ccr', id, state.ccrCruzNames.length);
   const s=g('ei-ccr-sexo-'+id); if(s!==null) c.sexo=s;
   const totEl=document.getElementById('ei-ccr-total-'+id);
   if(totEl) totEl.textContent=totalVotos(c);
-  _renderTotalsEl('ccr-cands-totals', getContext('ccr',regionId).candidatos);
+  _renderTotalsEl('ccr-cands-totals', getContext('ccr',regionId).candidatos, state.ccrCruzNames);
   saveState();
 };
 window._removeCCRCandidato=function(regionId,id){
@@ -875,7 +875,8 @@ function addCCRCandidato(regionId,datos){
   ctx.candidatos.push({id:newId(),nombre:datos.nombre.trim()||'(sin nombre)',
     pacto:datos.pacto||'—',lote:datos.lote||'',comunal:(datos.comunal||'').toUpperCase(),
     votosBase:parseInt(datos.vbase)||0,
-    cruces:(datos.cruces||[]).map(function(v){return parseInt(v)||0;}),
+    cruces:(function(){ const n=state.ccrCruzNames.length,src=(datos.cruces||[]);
+      return Array.from({length:n},function(_,i){return parseInt(src[i])||0;}); })(),
     sexo:datos.sexo||'H'});
   renderCCRCandidatos(regionId);saveState();
   document.getElementById('ccr-resultado-output').classList.add('hidden');
@@ -1213,13 +1214,13 @@ function doAddCCR(){
     lote:    document.getElementById('ccr-lote-sel').value,
     comunal: document.getElementById('ccr-comunal').value,
     vbase:   document.getElementById('ccr-vbase').value,
-    cruces:  _readCruzAddForm('ccr'),
+    cruces:  _readCruzAddForm('ccr', state.ccrCruzNames.length),
     sexo:    document.getElementById('ccr-sexo').value,
   });
   if(ok){
     document.getElementById('ccr-nombre').value='';
     document.getElementById('ccr-vbase').value='';
-    _clearCruzAddForm('ccr');
+    _clearCruzAddForm('ccr', state.ccrCruzNames.length);
     document.getElementById('ccr-comunal').value='';
   }
 }

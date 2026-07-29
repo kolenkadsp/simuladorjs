@@ -1256,7 +1256,7 @@ function filaInlineDir(c, cargoId) {
     '<select class="inline-cell w-full" id="ei-dir-lote-'+c.id+'" onchange="'+ac+'"><option value="">—</option>'+loteOpts+'</select>'+
     '<input class="inline-cell w-full" id="ei-dir-comunal-'+c.id+'" value="'+(c.comunal||'')+'" onchange="'+ac+'" onkeydown="'+enter+'">'+
     '<input type="number" class="inline-cell w-full text-center" id="ei-dir-vbase-'+c.id+'" value="'+(c.votosBase||0)+'" onchange="'+ac+'" oninput="window._updateTotalDir('+c.id+')" onkeydown="'+enter+'">'+
-    _cruzInlineInputs(c,'dir',ac,enter,'window._updateTotalDir')+
+    _cruzInlineInputs(c,'dir',ac,enter,'window._updateTotalDir',state.direccion.cruzNames)+
     '<span class="text-center font-semibold text-xs px-1" id="ei-dir-total-'+c.id+'">'+totalVotos(c)+'</span>'+
     '<select class="inline-cell w-full" id="ei-dir-sexo-'+c.id+'" onchange="'+ac+'">'+
       '<option value="H"'+(c.sexo==='H'?' selected':'')+'>H</option>'+
@@ -1267,7 +1267,7 @@ function filaInlineDir(c, cargoId) {
 }
 
 window._updateTotalDir = function(id) {
-  const tot = _calcTotalFromInputs('dir', id);
+  const tot = _calcTotalFromInputs('dir', id, state.direccion.cruzNames.length);
   const el = document.getElementById('ei-dir-total-'+id); if(el) el.textContent=tot;
 };
 
@@ -1278,7 +1278,7 @@ function renderDirCandidatos(cargoId) {
   lista.innerHTML = ctx.candidatos.length === 0
     ? '<p class="text-sm text-gray-400">Sin candidatos aún.</p>'
     : ctx.candidatos.map(c => filaInlineDir(c, cargoId)).join('');
-  _renderTotalsEl('dir-cands-totals-'+cargoId, ctx.candidatos);
+  _renderTotalsEl('dir-cands-totals-'+cargoId, ctx.candidatos, state.direccion.cruzNames);
 }
 
 window._autoSaveDir = function(cargoId, id) {
@@ -1290,11 +1290,11 @@ window._autoSaveDir = function(cargoId, id) {
   const l=g('ei-dir-lote-'+id);    if(l!==null) c.lote=l;
   const com=g('ei-dir-comunal-'+id); if(com!==null) c.comunal=com.trim().toUpperCase();
   const vb=g('ei-dir-vbase-'+id);  if(vb!==null) c.votosBase=parseInt(vb)||0;
-  c.cruces = _readCruces('dir', id);
+  c.cruces = _readCruces('dir', id, state.direccion.cruzNames.length);
   const s=g('ei-dir-sexo-'+id);    if(s!==null) c.sexo=s;
   const totEl=document.getElementById('ei-dir-total-'+id);
   if(totEl) totEl.textContent=totalVotos(c);
-  _renderTotalsEl('dir-cands-totals-'+cargoId, state.direccion[cargoId].candidatos);
+  _renderTotalsEl('dir-cands-totals-'+cargoId, state.direccion[cargoId].candidatos, state.direccion.cruzNames);
   saveState();
 };
 
@@ -1308,7 +1308,8 @@ function addDirCandidato(cargoId, datos) {
     id: newId(), nombre: datos.nombre.trim()||'(sin nombre)',
     pacto: datos.pacto||'—', lote: datos.lote||'', comunal: (datos.comunal||'').toUpperCase(),
     votosBase: parseInt(datos.vbase)||0,
-    cruces: (datos.cruces||[]).map(function(v){return parseInt(v)||0;}),
+    cruces: (function(){ var n=state.direccion.cruzNames.length,src=(datos.cruces||[]);
+      return Array.from({length:n},function(_,i){return parseInt(src[i])||0;}); })(),
     sexo: datos.sexo||'H'
   });
   renderDirCandidatos(cargoId); saveState();
@@ -1360,13 +1361,13 @@ function doAddDir(cargoId) {
     lote:    document.getElementById('dir-lote-sel-'+cargoId).value,
     comunal: document.getElementById('dir-comunal-'+cargoId).value,
     vbase:   document.getElementById('dir-vbase-'+cargoId).value,
-    cruces:  _readCruzAddForm('dir-'+cargoId),
+    cruces:  _readCruzAddForm('dir-'+cargoId, state.direccion.cruzNames.length),
     sexo:    document.getElementById('dir-sexo-'+cargoId).value,
   });
   if (ok) {
     document.getElementById('dir-nombre-'+cargoId).value='';
     document.getElementById('dir-vbase-'+cargoId).value='';
-    _clearCruzAddForm('dir-'+cargoId);
+    _clearCruzAddForm('dir-'+cargoId, state.direccion.cruzNames.length);
     document.getElementById('dir-comunal-'+cargoId).value='';
   }
 }
@@ -1488,8 +1489,8 @@ function buildDireccionPanel() {
 
   renderDirPactos();
   DIR_CARGOS.forEach(function(cargo){
-    renderCandHeader('dir-cands-header-'+cargo.id);
-    renderCruzAddInputs('dir-'+cargo.id);
+    renderCandHeader('dir-cands-header-'+cargo.id, state.direccion.cruzNames);
+    renderCruzAddInputs('dir-'+cargo.id, state.direccion.cruzNames);
     renderDirCandidatos(cargo.id);
   });
 }

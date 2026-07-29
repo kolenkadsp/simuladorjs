@@ -64,11 +64,7 @@
       <section class="mb-6 bg-white rounded-lg shadow p-4">
         <h2 class="font-bold text-lg mb-3">Candidatos</h2>
         <div class="overflow-x-auto">
-          <div class="cand-row mb-2 text-xs font-semibold text-gray-500 uppercase">
-            <span></span><span>Nombre</span><span>Pacto</span><span>Lote</span><span>Comunal</span>
-            <span>V.Base</span><span id="ccn-ch-0">Cruz.1</span><span id="ccn-ch-1">Cruz.2</span><span id="ccn-ch-2">Cruz.3</span><span class="font-bold text-gray-700">Total</span>
-            <span>Sexo</span><span></span>
-          </div>
+          <div id="ccn-cands-header" class="cand-row mb-2 text-xs font-semibold text-gray-500 uppercase"></div>
           <div id="ccn-candidatos-list" class="space-y-0.5 mb-3"></div>
         </div>
         <!-- Formulario agregar -->
@@ -86,9 +82,7 @@
           </select>
           <input id="ccn-comunal" type="text" placeholder="Comunal" class="border rounded px-1 py-1 text-sm w-24">
           <input id="ccn-vbase"  type="number" min="0" placeholder="V.Base"  class="border rounded px-1 py-1 text-sm w-16">
-          <input id="ccn-vcruz1" type="number" min="0" placeholder="Cruz.1"  class="border rounded px-1 py-1 text-sm w-16">
-          <input id="ccn-vcruz2" type="number" min="0" placeholder="Cruz.2"  class="border rounded px-1 py-1 text-sm w-16">
-          <input id="ccn-vcruz3" type="number" min="0" placeholder="Cruz.3"  class="border rounded px-1 py-1 text-sm w-16">
+          <span id="ccn-cruz-add-inputs" class="contents"></span>
           <select id="ccn-sexo" class="border rounded px-1 py-1 text-sm w-24">
             <option value="H">Hombre</option>
             <option value="M">Mujer</option>
@@ -129,20 +123,11 @@
       <section class="mb-6 bg-white rounded-lg shadow p-4">
         <div class="flex items-center justify-between mb-2">
           <h2 class="font-bold text-lg">Candidatos</h2>
-          <div class="flex items-center gap-1 text-xs text-gray-400">
-            <span class="whitespace-nowrap">Nombres cruce:</span>
-            <input id="cruzname-0" class="border rounded px-1 py-0.5 w-20 text-xs" placeholder="Cruz.1">
-            <input id="cruzname-1" class="border rounded px-1 py-0.5 w-20 text-xs" placeholder="Cruz.2">
-            <input id="cruzname-2" class="border rounded px-1 py-0.5 w-20 text-xs" placeholder="Cruz.3">
-          </div>
+          <div id="ccr-cruz-config" class="flex items-center gap-1 flex-wrap text-xs text-gray-400"></div>
         </div>
         <div id="ccr-escenarios-tabs" class="flex items-end gap-0.5 mb-0 border-b border-gray-200"></div>
         <div class="overflow-x-auto pt-2">
-          <div class="cand-row mb-2 text-xs font-semibold text-gray-500 uppercase">
-            <span></span><span>Nombre</span><span>Pacto</span><span>Lote</span><span>Comunal</span>
-            <span>V.Base</span><span id="ccr-ch-0">Cruz.1</span><span id="ccr-ch-1">Cruz.2</span><span id="ccr-ch-2">Cruz.3</span><span class="font-bold text-gray-700">Total</span>
-            <span>Sexo</span><span></span>
-          </div>
+          <div id="ccr-cands-header" class="cand-row mb-2 text-xs font-semibold text-gray-500 uppercase"></div>
           <div id="ccr-candidatos-list" class="space-y-0.5 mb-3"></div>
         </div>
         <div id="ccr-votos-lote" class="mb-3"></div>
@@ -160,9 +145,7 @@
           </select>
           <input id="ccr-comunal" type="text" placeholder="Comunal" class="border rounded px-1 py-1 text-sm w-24">
           <input id="ccr-vbase"  type="number" min="0" placeholder="V.Base"  class="border rounded px-1 py-1 text-sm w-16">
-          <input id="ccr-vcruz1" type="number" min="0" placeholder="Cruz.1"  class="border rounded px-1 py-1 text-sm w-16">
-          <input id="ccr-vcruz2" type="number" min="0" placeholder="Cruz.2"  class="border rounded px-1 py-1 text-sm w-16">
-          <input id="ccr-vcruz3" type="number" min="0" placeholder="Cruz.3"  class="border rounded px-1 py-1 text-sm w-16">
+          <span id="ccr-cruz-add-inputs" class="contents"></span>
           <select id="ccr-sexo" class="border rounded px-1 py-1 text-sm w-24">
             <option value="H">Hombre</option>
             <option value="M">Mujer</option>
@@ -246,7 +229,129 @@ function newId() { return nextId++; }
 
 // ── votos helpers ─────────────────────────────────────────────────────────────
 function totalVotos(c) {
-  return (parseInt(c.votosBase)||0) + (parseInt(c.vCruz1)||0) + (parseInt(c.vCruz2)||0) + (parseInt(c.vCruz3)||0);
+  return (parseInt(c.votosBase)||0) + (c.cruces||[]).reduce(function(s,v){return s+(parseInt(v)||0);},0);
+}
+
+// ── cruce dynamic helpers ─────────────────────────────────────────────────────
+function updateCandRowStyle() {
+  const n = state.cruzNames.length;
+  const cruzCols = new Array(n).fill('58px').join(' ');
+  const tpl = '18px minmax(140px,2fr) minmax(90px,1.2fr) minmax(80px,1fr) minmax(70px,1fr) 58px '+cruzCols+' 62px 80px 26px';
+  let el = document.getElementById('cand-row-grid-style');
+  if (!el) { el = document.createElement('style'); el.id='cand-row-grid-style'; document.head.appendChild(el); }
+  el.textContent = '.cand-row{grid-template-columns:'+tpl+';}';
+}
+
+function renderCandHeader(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = '<span></span><span>Nombre</span><span>Pacto</span><span>Lote</span><span>Comunal</span>'+
+    '<span>V.Base</span>'+
+    state.cruzNames.map(function(n,i){ return '<span class="cruz-col-hdr-'+i+'">'+n+'</span>'; }).join('')+
+    '<span class="font-bold text-gray-700">Total</span><span>Sexo</span><span></span>';
+}
+
+function renderCruzConfig() {
+  const el = document.getElementById('ccr-cruz-config');
+  if (!el) return;
+  el.innerHTML = '<span class="whitespace-nowrap text-gray-400 mr-1">Cruces:</span>'+
+    state.cruzNames.map(function(name,i){
+      return '<div class="flex items-center gap-0">'+
+        '<input class="border rounded px-1 py-0.5 w-20 text-xs" value="'+name+'" '+
+          'onchange="window._setCruzName('+i+',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()">'+
+        (state.cruzNames.length>1
+          ? '<button class="text-red-400 hover:text-red-600 text-xs px-0.5 leading-none" onclick="removeCruz('+i+')" title="Eliminar columna">×</button>'
+          : '')+
+      '</div>';
+    }).join('')+
+    '<button class="text-xs text-blue-500 hover:text-blue-700 border border-blue-300 rounded px-1.5 py-0.5 whitespace-nowrap ml-1" onclick="addCruz()">+ Cruce</button>';
+}
+
+function renderCruzAddInputs(pfx) {
+  const el = document.getElementById(pfx+'-cruz-add-inputs');
+  if (!el) return;
+  el.innerHTML = state.cruzNames.map(function(name,i){
+    return '<input id="'+pfx+'-vcruz'+i+'" type="number" min="0" placeholder="'+name+'" class="border rounded px-1 py-1 text-sm w-16">';
+  }).join('');
+}
+
+function _cruzInlineInputs(c, pfx, ac, enter, updateFn) {
+  const cruces = c.cruces || [];
+  return state.cruzNames.map(function(name,i){
+    return '<input type="number" class="inline-cell w-full text-center" id="ei-'+pfx+'-vcruz'+i+'-'+c.id+'" value="'+(cruces[i]||0)+'" onchange="'+ac+'" oninput="'+updateFn+'('+c.id+')" onkeydown="'+enter+'">';
+  }).join('');
+}
+
+function _calcTotalFromInputs(pfx, id) {
+  const g = function(sel){ const el=document.getElementById(sel); return el?parseInt(el.value)||0:0; };
+  let tot = g('ei-'+pfx+'-vbase-'+id);
+  for (let i=0;i<state.cruzNames.length;i++) tot += g('ei-'+pfx+'-vcruz'+i+'-'+id);
+  return tot;
+}
+
+function _readCruces(pfx, id) {
+  return state.cruzNames.map(function(_,i){
+    const el=document.getElementById('ei-'+pfx+'-vcruz'+i+'-'+id); return parseInt(el&&el.value)||0;
+  });
+}
+
+function _readCruzAddForm(pfx) {
+  return state.cruzNames.map(function(_,i){
+    const el=document.getElementById(pfx+'-vcruz'+i); return parseInt(el&&el.value)||0;
+  });
+}
+
+function _clearCruzAddForm(pfx) {
+  state.cruzNames.forEach(function(_,i){
+    const el=document.getElementById(pfx+'-vcruz'+i); if(el) el.value='';
+  });
+}
+
+function addCruz() {
+  const i = state.cruzNames.length;
+  state.cruzNames.push('Cruz.'+(i+1));
+  _propagateCruzChange('add', null);
+  _rebuildAfterCruzChange();
+}
+
+function removeCruz(idx) {
+  if (state.cruzNames.length<=1) return;
+  if (!confirm('¿Eliminar columna "'+state.cruzNames[idx]+'"?\nSe perderán los votos asignados en esa columna.')) return;
+  state.cruzNames.splice(idx,1);
+  _propagateCruzChange('remove', idx);
+  _rebuildAfterCruzChange();
+}
+
+function _propagateCruzChange(action, idx) {
+  const all=[];
+  getContext('ccn').candidatos.forEach(function(c){all.push(c);});
+  REGIONES.forEach(function(r){
+    const reg=state.ccr[r.id];
+    if(reg&&reg.escenarios) reg.escenarios.forEach(function(e){e.candidatos.forEach(function(c){all.push(c);});});
+  });
+  DIR_CARGOS.forEach(function(cargo){state.direccion[cargo.id].candidatos.forEach(function(c){all.push(c);});});
+  all.forEach(function(c){
+    if(!c.cruces) c.cruces=[];
+    if(action==='add') c.cruces.push(0);
+    else if(action==='remove') c.cruces.splice(idx,1);
+  });
+}
+
+function _rebuildAfterCruzChange() {
+  updateCandRowStyle();
+  renderCruzConfig();
+  renderCandHeader('ccn-cands-header');
+  renderCandHeader('ccr-cands-header');
+  renderCruzAddInputs('ccn');
+  renderCruzAddInputs('ccr');
+  renderCCNCandidatos();
+  renderCCRCandidatos(state.ccrRegionActiva);
+  DIR_CARGOS.forEach(function(cargo){
+    renderCandHeader('dir-cands-header-'+cargo.id);
+    renderCruzAddInputs('dir-'+cargo.id);
+    renderDirCandidatos(cargo.id);
+  });
+  saveState();
 }
 
 // ── localStorage ──────────────────────────────────────────────────────────────
@@ -257,9 +362,11 @@ function saveState() {
 function migrateCandidate(c) {
   if (c.votosBase === undefined) {
     c.votosBase = c.votos || 0;
-    c.vCruz1 = 0;
-    c.vCruz2 = 0;
-    c.vCruz3 = 0;
+  }
+  if (!c.cruces) {
+    const old = [parseInt(c.vCruz1)||0, parseInt(c.vCruz2)||0, parseInt(c.vCruz3)||0];
+    c.cruces = old;
+    delete c.vCruz1; delete c.vCruz2; delete c.vCruz3;
   }
   return c;
 }
@@ -561,9 +668,7 @@ function filaInlineCCN(c, ctx) {
     '<select class="inline-cell w-full" id="ei-ccn-lote-'+c.id+'" onchange="'+ac+'"><option value="">—</option>'+loteOpts+'</select>'+
     '<input class="inline-cell w-full" id="ei-ccn-comunal-'+c.id+'" value="'+(c.comunal||'')+'" onchange="'+ac+'" onkeydown="'+enter+'">'+
     '<input type="number" class="inline-cell w-full text-center" id="ei-ccn-vbase-'+c.id+'" value="'+(c.votosBase||0)+'" onchange="'+ac+'" oninput="window._updateTotalCCN('+c.id+')" onkeydown="'+enter+'">'+
-    '<input type="number" class="inline-cell w-full text-center" id="ei-ccn-vcruz1-'+c.id+'" value="'+(c.vCruz1||0)+'" onchange="'+ac+'" oninput="window._updateTotalCCN('+c.id+')" onkeydown="'+enter+'">'+
-    '<input type="number" class="inline-cell w-full text-center" id="ei-ccn-vcruz2-'+c.id+'" value="'+(c.vCruz2||0)+'" onchange="'+ac+'" oninput="window._updateTotalCCN('+c.id+')" onkeydown="'+enter+'">'+
-    '<input type="number" class="inline-cell w-full text-center" id="ei-ccn-vcruz3-'+c.id+'" value="'+(c.vCruz3||0)+'" onchange="'+ac+'" oninput="window._updateTotalCCN('+c.id+')" onkeydown="'+enter+'">'+
+    _cruzInlineInputs(c,'ccn',ac,enter,'window._updateTotalCCN')+
     '<span class="text-center font-semibold text-xs px-1" id="ei-ccn-total-'+c.id+'">'+totalVotos(c)+'</span>'+
     '<select class="inline-cell w-full" id="ei-ccn-sexo-'+c.id+'" onchange="'+ac+'">'+
       '<option value="H"'+(c.sexo==='H'?' selected':'')+'>H</option>'+
@@ -573,8 +678,7 @@ function filaInlineCCN(c, ctx) {
   '</div>';
 }
 window._updateTotalCCN = function(id) {
-  const g = sel => { const el=document.getElementById(sel); return el?parseInt(el.value)||0:0; };
-  const tot = g('ei-ccn-vbase-'+id)+g('ei-ccn-vcruz1-'+id)+g('ei-ccn-vcruz2-'+id)+g('ei-ccn-vcruz3-'+id);
+  const tot = _calcTotalFromInputs('ccn', id);
   const el=document.getElementById('ei-ccn-total-'+id); if(el) el.textContent=tot;
 };
 function renderCCNCandidatos() {
@@ -593,9 +697,7 @@ window._autoSaveCCNCandidato = function(id) {
   const l=g('ei-ccn-lote-'+id); if(l!==null) c.lote=l;
   const com=g('ei-ccn-comunal-'+id); if(com!==null) c.comunal=com.trim().toUpperCase();
   const vb=g('ei-ccn-vbase-'+id); if(vb!==null) c.votosBase=parseInt(vb)||0;
-  const v1=g('ei-ccn-vcruz1-'+id); if(v1!==null) c.vCruz1=parseInt(v1)||0;
-  const v2=g('ei-ccn-vcruz2-'+id); if(v2!==null) c.vCruz2=parseInt(v2)||0;
-  const v3=g('ei-ccn-vcruz3-'+id); if(v3!==null) c.vCruz3=parseInt(v3)||0;
+  c.cruces = _readCruces('ccn', id);
   const s=g('ei-ccn-sexo-'+id); if(s!==null) c.sexo=s;
   const totEl=document.getElementById('ei-ccn-total-'+id);
   if(totEl) totEl.textContent=totalVotos(c);
@@ -609,8 +711,8 @@ function addCCNCandidato(datos) {
   const ctx=getContext('ccn');
   ctx.candidatos.push({ id:newId(), nombre:datos.nombre.trim()||'(sin nombre)',
     pacto:datos.pacto||'—', lote:datos.lote||'', comunal:(datos.comunal||'').toUpperCase(),
-    votosBase:parseInt(datos.vbase)||0, vCruz1:parseInt(datos.vcruz1)||0,
-    vCruz2:parseInt(datos.vcruz2)||0, vCruz3:parseInt(datos.vcruz3)||0,
+    votosBase:parseInt(datos.vbase)||0,
+    cruces:(datos.cruces||[]).map(function(v){return parseInt(v)||0;}),
     sexo:datos.sexo||'H' });
   renderCCNCandidatos(); saveState();
   document.getElementById('ccn-resultado-output').classList.add('hidden');
@@ -675,9 +777,7 @@ function filaInlineCCR(c, ctx, regionId) {
     '<select class="inline-cell w-full" id="ei-ccr-lote-'+c.id+'" onchange="'+ac+'"><option value="">—</option>'+loteOpts+'</select>'+
     '<input class="inline-cell w-full" id="ei-ccr-comunal-'+c.id+'" value="'+(c.comunal||'')+'" onchange="'+ac+'" onkeydown="'+enter+'">'+
     '<input type="number" class="inline-cell w-full text-center" id="ei-ccr-vbase-'+c.id+'" value="'+(c.votosBase||0)+'" onchange="'+ac+'" oninput="window._updateTotalCCR(\''+regionId+'\','+c.id+')" onkeydown="'+enter+'">'+
-    '<input type="number" class="inline-cell w-full text-center" id="ei-ccr-vcruz1-'+c.id+'" value="'+(c.vCruz1||0)+'" onchange="'+ac+'" oninput="window._updateTotalCCR(\''+regionId+'\','+c.id+')" onkeydown="'+enter+'">'+
-    '<input type="number" class="inline-cell w-full text-center" id="ei-ccr-vcruz2-'+c.id+'" value="'+(c.vCruz2||0)+'" onchange="'+ac+'" oninput="window._updateTotalCCR(\''+regionId+'\','+c.id+')" onkeydown="'+enter+'">'+
-    '<input type="number" class="inline-cell w-full text-center" id="ei-ccr-vcruz3-'+c.id+'" value="'+(c.vCruz3||0)+'" onchange="'+ac+'" oninput="window._updateTotalCCR(\''+regionId+'\','+c.id+')" onkeydown="'+enter+'">'+
+    _cruzInlineInputs(c,'ccr',ac,enter,'window._updateTotalCCR.bind(null,\''+regionId+'\')')+
     '<span class="text-center font-semibold text-xs px-1" id="ei-ccr-total-'+c.id+'">'+totalVotos(c)+'</span>'+
     '<select class="inline-cell w-full" id="ei-ccr-sexo-'+c.id+'" onchange="'+ac+'">'+
       '<option value="H"'+(c.sexo==='H'?' selected':'')+'>H</option>'+
@@ -687,8 +787,7 @@ function filaInlineCCR(c, ctx, regionId) {
   '</div>';
 }
 window._updateTotalCCR = function(regionId, id) {
-  const g = sel => { const el=document.getElementById(sel); return el?parseInt(el.value)||0:0; };
-  const tot = g('ei-ccr-vbase-'+id)+g('ei-ccr-vcruz1-'+id)+g('ei-ccr-vcruz2-'+id)+g('ei-ccr-vcruz3-'+id);
+  const tot = _calcTotalFromInputs('ccr', id);
   const el=document.getElementById('ei-ccr-total-'+id); if(el) el.textContent=tot;
 };
 function renderCCRCandidatos(regionId) {
@@ -707,9 +806,7 @@ window._autoSaveCCRCandidato=function(regionId,id){
   const l=g('ei-ccr-lote-'+id); if(l!==null) c.lote=l;
   const com=g('ei-ccr-comunal-'+id); if(com!==null) c.comunal=com.trim().toUpperCase();
   const vb=g('ei-ccr-vbase-'+id); if(vb!==null) c.votosBase=parseInt(vb)||0;
-  const v1=g('ei-ccr-vcruz1-'+id); if(v1!==null) c.vCruz1=parseInt(v1)||0;
-  const v2=g('ei-ccr-vcruz2-'+id); if(v2!==null) c.vCruz2=parseInt(v2)||0;
-  const v3=g('ei-ccr-vcruz3-'+id); if(v3!==null) c.vCruz3=parseInt(v3)||0;
+  c.cruces = _readCruces('ccr', id);
   const s=g('ei-ccr-sexo-'+id); if(s!==null) c.sexo=s;
   const totEl=document.getElementById('ei-ccr-total-'+id);
   if(totEl) totEl.textContent=totalVotos(c);
@@ -724,8 +821,8 @@ function addCCRCandidato(regionId,datos){
   const ctx=getContext('ccr',regionId);
   ctx.candidatos.push({id:newId(),nombre:datos.nombre.trim()||'(sin nombre)',
     pacto:datos.pacto||'—',lote:datos.lote||'',comunal:(datos.comunal||'').toUpperCase(),
-    votosBase:parseInt(datos.vbase)||0, vCruz1:parseInt(datos.vcruz1)||0,
-    vCruz2:parseInt(datos.vcruz2)||0, vCruz3:parseInt(datos.vcruz3)||0,
+    votosBase:parseInt(datos.vbase)||0,
+    cruces:(datos.cruces||[]).map(function(v){return parseInt(v)||0;}),
     sexo:datos.sexo||'H'});
   renderCCRCandidatos(regionId);saveState();
   document.getElementById('ccr-resultado-output').classList.add('hidden');
@@ -1002,25 +1099,17 @@ function renderVotosPorLote(regionId) {
 
 // ── Nombres de cruce ──────────────────────────────────────────────────────────
 function updateCruzHeaders() {
-  [0, 1, 2].forEach(function(i) {
-    const name = state.cruzNames[i] || ('Cruz.' + (i + 1));
-    ['ccn-ch-' + i, 'ccr-ch-' + i].forEach(function(id) {
-      const el = document.getElementById(id); if (el) el.textContent = name;
-    });
-    document.querySelectorAll('.dir-ch-' + i).forEach(function(el) { el.textContent = name; });
-    // Update placeholders in add forms
-    [['ccn-vcruz', 'ccr-vcruz'], ['dir-vcruz']].forEach(function(group) {
-      group.forEach(function(pfx) {
-        const el = document.getElementById(pfx + (i + 1));
-        if (el) el.placeholder = name;
-      });
-    });
-  });
+  renderCandHeader('ccn-cands-header');
+  renderCandHeader('ccr-cands-header');
+  DIR_CARGOS.forEach(function(cargo){ renderCandHeader('dir-cands-header-'+cargo.id); });
 }
 
 window._setCruzName = function(idx, name) {
   state.cruzNames[idx] = name.trim() || ('Cruz.' + (idx + 1));
-  updateCruzHeaders(); saveState();
+  updateCandRowStyle();
+  renderCruzConfig();
+  updateCruzHeaders();
+  saveState();
 };
 
 // ── Drag & Drop reordering ────────────────────────────────────────────────────
@@ -1091,17 +1180,13 @@ function doAddCCN(){
     lote:    document.getElementById('ccn-lote-sel').value,
     comunal: document.getElementById('ccn-comunal').value,
     vbase:   document.getElementById('ccn-vbase').value,
-    vcruz1:  document.getElementById('ccn-vcruz1').value,
-    vcruz2:  document.getElementById('ccn-vcruz2').value,
-    vcruz3:  document.getElementById('ccn-vcruz3').value,
+    cruces:  _readCruzAddForm('ccn'),
     sexo:    document.getElementById('ccn-sexo').value,
   });
   if(ok){
     document.getElementById('ccn-nombre').value='';
     document.getElementById('ccn-vbase').value='';
-    document.getElementById('ccn-vcruz1').value='';
-    document.getElementById('ccn-vcruz2').value='';
-    document.getElementById('ccn-vcruz3').value='';
+    _clearCruzAddForm('ccn');
     document.getElementById('ccn-comunal').value='';
   }
 }
@@ -1122,17 +1207,13 @@ function doAddCCR(){
     lote:    document.getElementById('ccr-lote-sel').value,
     comunal: document.getElementById('ccr-comunal').value,
     vbase:   document.getElementById('ccr-vbase').value,
-    vcruz1:  document.getElementById('ccr-vcruz1').value,
-    vcruz2:  document.getElementById('ccr-vcruz2').value,
-    vcruz3:  document.getElementById('ccr-vcruz3').value,
+    cruces:  _readCruzAddForm('ccr'),
     sexo:    document.getElementById('ccr-sexo').value,
   });
   if(ok){
     document.getElementById('ccr-nombre').value='';
     document.getElementById('ccr-vbase').value='';
-    document.getElementById('ccr-vcruz1').value='';
-    document.getElementById('ccr-vcruz2').value='';
-    document.getElementById('ccr-vcruz3').value='';
+    _clearCruzAddForm('ccr');
     document.getElementById('ccr-comunal').value='';
   }
 }
@@ -1168,9 +1249,7 @@ function filaInlineDir(c, cargoId) {
     '<select class="inline-cell w-full" id="ei-dir-lote-'+c.id+'" onchange="'+ac+'"><option value="">—</option>'+loteOpts+'</select>'+
     '<input class="inline-cell w-full" id="ei-dir-comunal-'+c.id+'" value="'+(c.comunal||'')+'" onchange="'+ac+'" onkeydown="'+enter+'">'+
     '<input type="number" class="inline-cell w-full text-center" id="ei-dir-vbase-'+c.id+'" value="'+(c.votosBase||0)+'" onchange="'+ac+'" oninput="window._updateTotalDir('+c.id+')" onkeydown="'+enter+'">'+
-    '<input type="number" class="inline-cell w-full text-center" id="ei-dir-vcruz1-'+c.id+'" value="'+(c.vCruz1||0)+'" onchange="'+ac+'" oninput="window._updateTotalDir('+c.id+')" onkeydown="'+enter+'">'+
-    '<input type="number" class="inline-cell w-full text-center" id="ei-dir-vcruz2-'+c.id+'" value="'+(c.vCruz2||0)+'" onchange="'+ac+'" oninput="window._updateTotalDir('+c.id+')" onkeydown="'+enter+'">'+
-    '<input type="number" class="inline-cell w-full text-center" id="ei-dir-vcruz3-'+c.id+'" value="'+(c.vCruz3||0)+'" onchange="'+ac+'" oninput="window._updateTotalDir('+c.id+')" onkeydown="'+enter+'">'+
+    _cruzInlineInputs(c,'dir',ac,enter,'window._updateTotalDir')+
     '<span class="text-center font-semibold text-xs px-1" id="ei-dir-total-'+c.id+'">'+totalVotos(c)+'</span>'+
     '<select class="inline-cell w-full" id="ei-dir-sexo-'+c.id+'" onchange="'+ac+'">'+
       '<option value="H"'+(c.sexo==='H'?' selected':'')+'>H</option>'+
@@ -1181,8 +1260,7 @@ function filaInlineDir(c, cargoId) {
 }
 
 window._updateTotalDir = function(id) {
-  const g = sel => { const el=document.getElementById(sel); return el?parseInt(el.value)||0:0; };
-  const tot = g('ei-dir-vbase-'+id)+g('ei-dir-vcruz1-'+id)+g('ei-dir-vcruz2-'+id)+g('ei-dir-vcruz3-'+id);
+  const tot = _calcTotalFromInputs('dir', id);
   const el = document.getElementById('ei-dir-total-'+id); if(el) el.textContent=tot;
 };
 
@@ -1204,9 +1282,7 @@ window._autoSaveDir = function(cargoId, id) {
   const l=g('ei-dir-lote-'+id);    if(l!==null) c.lote=l;
   const com=g('ei-dir-comunal-'+id); if(com!==null) c.comunal=com.trim().toUpperCase();
   const vb=g('ei-dir-vbase-'+id);  if(vb!==null) c.votosBase=parseInt(vb)||0;
-  const v1=g('ei-dir-vcruz1-'+id); if(v1!==null) c.vCruz1=parseInt(v1)||0;
-  const v2=g('ei-dir-vcruz2-'+id); if(v2!==null) c.vCruz2=parseInt(v2)||0;
-  const v3=g('ei-dir-vcruz3-'+id); if(v3!==null) c.vCruz3=parseInt(v3)||0;
+  c.cruces = _readCruces('dir', id);
   const s=g('ei-dir-sexo-'+id);    if(s!==null) c.sexo=s;
   const totEl=document.getElementById('ei-dir-total-'+id);
   if(totEl) totEl.textContent=totalVotos(c);
@@ -1222,8 +1298,8 @@ function addDirCandidato(cargoId, datos) {
   state.direccion[cargoId].candidatos.push({
     id: newId(), nombre: datos.nombre.trim()||'(sin nombre)',
     pacto: datos.pacto||'—', lote: datos.lote||'', comunal: (datos.comunal||'').toUpperCase(),
-    votosBase: parseInt(datos.vbase)||0, vCruz1: parseInt(datos.vcruz1)||0,
-    vCruz2: parseInt(datos.vcruz2)||0, vCruz3: parseInt(datos.vcruz3)||0,
+    votosBase: parseInt(datos.vbase)||0,
+    cruces: (datos.cruces||[]).map(function(v){return parseInt(v)||0;}),
     sexo: datos.sexo||'H'
   });
   renderDirCandidatos(cargoId); saveState();
@@ -1275,17 +1351,13 @@ function doAddDir(cargoId) {
     lote:    document.getElementById('dir-lote-sel-'+cargoId).value,
     comunal: document.getElementById('dir-comunal-'+cargoId).value,
     vbase:   document.getElementById('dir-vbase-'+cargoId).value,
-    vcruz1:  document.getElementById('dir-vcruz1-'+cargoId).value,
-    vcruz2:  document.getElementById('dir-vcruz2-'+cargoId).value,
-    vcruz3:  document.getElementById('dir-vcruz3-'+cargoId).value,
+    cruces:  _readCruzAddForm('dir-'+cargoId),
     sexo:    document.getElementById('dir-sexo-'+cargoId).value,
   });
   if (ok) {
     document.getElementById('dir-nombre-'+cargoId).value='';
     document.getElementById('dir-vbase-'+cargoId).value='';
-    document.getElementById('dir-vcruz1-'+cargoId).value='';
-    document.getElementById('dir-vcruz2-'+cargoId).value='';
-    document.getElementById('dir-vcruz3-'+cargoId).value='';
+    _clearCruzAddForm('dir-'+cargoId);
     document.getElementById('dir-comunal-'+cargoId).value='';
   }
 }
@@ -1359,11 +1431,7 @@ function buildDireccionPanel() {
         '<h2 class="font-bold text-lg mb-1">'+cargo.label+
           ' <span class="text-xs font-normal text-gray-400">('+cargo.cupos+' cupo'+(cargo.cupos>1?'s':'')+(cargo.soloMujer?' — solo mujeres':'')+' )</span></h2>'+
         '<div class="overflow-x-auto">'+
-          '<div class="cand-row mb-2 text-xs font-semibold text-gray-500 uppercase">'+
-            '<span></span><span>Nombre</span><span>Pacto</span><span>Lote</span><span>Comunal</span>'+
-            '<span>V.Base</span><span class="dir-ch-0">Cruz.1</span><span class="dir-ch-1">Cruz.2</span><span class="dir-ch-2">Cruz.3</span><span class="font-bold text-gray-700">Total</span>'+
-            '<span>Sexo</span><span></span>'+
-          '</div>'+
+          '<div id="dir-cands-header-'+cargo.id+'" class="cand-row mb-2 text-xs font-semibold text-gray-500 uppercase"></div>'+
           '<div id="dir-cands-'+cargo.id+'" class="space-y-0.5 mb-3"></div>'+
         '</div>'+
         '<div class="relative mb-2">'+
@@ -1375,9 +1443,7 @@ function buildDireccionPanel() {
           '<select id="dir-lote-sel-'+cargo.id+'" class="border rounded px-1 py-1 text-sm w-32">'+loteOptStr+'</select>'+
           '<input id="dir-comunal-'+cargo.id+'" type="text" placeholder="Comunal" class="border rounded px-1 py-1 text-sm w-24">'+
           '<input id="dir-vbase-'+cargo.id+'"  type="number" min="0" placeholder="V.Base"  class="border rounded px-1 py-1 text-sm w-16">'+
-          '<input id="dir-vcruz1-'+cargo.id+'" type="number" min="0" placeholder="Cruz.1"  class="border rounded px-1 py-1 text-sm w-16">'+
-          '<input id="dir-vcruz2-'+cargo.id+'" type="number" min="0" placeholder="Cruz.2"  class="border rounded px-1 py-1 text-sm w-16">'+
-          '<input id="dir-vcruz3-'+cargo.id+'" type="number" min="0" placeholder="Cruz.3"  class="border rounded px-1 py-1 text-sm w-16">'+
+          '<span id="dir-'+cargo.id+'-cruz-add-inputs" class="contents"></span>'+
           '<select id="dir-sexo-'+cargo.id+'" class="border rounded px-1 py-1 text-sm w-24">'+defaultSexo+'</select>'+
           '<button id="dir-add-cand-'+cargo.id+'" class="bg-gray-700 text-white px-3 py-1 rounded text-sm hover:bg-gray-800 whitespace-nowrap">+ Agregar (Enter)</button>'+
         '</div>'+
@@ -1411,7 +1477,11 @@ function buildDireccionPanel() {
   });
 
   renderDirPactos();
-  DIR_CARGOS.forEach(function(cargo){ renderDirCandidatos(cargo.id); });
+  DIR_CARGOS.forEach(function(cargo){
+    renderCandHeader('dir-cands-header-'+cargo.id);
+    renderCruzAddInputs('dir-'+cargo.id);
+    renderDirCandidatos(cargo.id);
+  });
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
@@ -1432,16 +1502,12 @@ initCCR();
 document.getElementById('ccr-region-sel').value = state.ccrRegionActiva;
 setupAutocompleteCCN();
 setupAutocompleteCCR();
-// Cruz name inputs
-[0,1,2].forEach(function(i) {
-  const inp = document.getElementById('cruzname-'+i);
-  if (inp) {
-    inp.value = state.cruzNames[i] || ('Cruz.'+(i+1));
-    inp.addEventListener('change', function(){ window._setCruzName(i, this.value); });
-    inp.addEventListener('keydown', function(e){ if(e.key==='Enter') this.blur(); });
-  }
-});
-updateCruzHeaders();
+updateCandRowStyle();
+renderCruzConfig();
+renderCandHeader('ccn-cands-header');
+renderCandHeader('ccr-cands-header');
+renderCruzAddInputs('ccn');
+renderCruzAddInputs('ccr');
 // Restaurar pestaña activa
 switchTab(state.tabActiva || 'ccn');
 </script>

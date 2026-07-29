@@ -30,7 +30,7 @@
 /* Fila de candidatos — grid con anchos fijos para columnas numéricas */
 .cand-row {
   display: grid;
-  grid-template-columns: 18px minmax(140px,2fr) minmax(90px,1.2fr) minmax(80px,1fr) minmax(70px,1fr) 58px 58px 58px 58px 62px 80px 26px;
+  /* grid-template-columns set dynamically by updateCandRowStyle() */
   gap: 4px;
   align-items: center;
   min-width: 720px;

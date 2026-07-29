@@ -62,8 +62,12 @@
       </section>
 
       <section class="mb-6 bg-white rounded-lg shadow p-4">
-        <h2 class="font-bold text-lg mb-3">Candidatos</h2>
-        <div class="overflow-x-auto">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="font-bold text-lg">Candidatos</h2>
+          <div id="ccn-cruz-config" class="flex items-center gap-1 flex-wrap text-xs text-gray-400"></div>
+        </div>
+        <div id="ccn-escenarios-tabs" class="flex items-end gap-0.5 mb-0 border-b border-gray-200"></div>
+        <div class="overflow-x-auto pt-2">
           <div id="ccn-cands-header" class="cand-row mb-2 text-xs font-semibold text-gray-500 uppercase"></div>
           <div id="ccn-candidatos-list" class="space-y-0.5 mb-1"></div>
           <div id="ccn-cands-totals"></div>
@@ -1044,6 +1048,64 @@ window._jeUpdate = function(regionId, lote, value) {
   saveState();
 };
 
+// ── CCN Escenarios ────────────────────────────────────────────────────────────
+function renderCCNScenarios() {
+  const el = document.getElementById('ccn-escenarios-tabs');
+  if (!el) return;
+  const s = state.ccn;
+  el.innerHTML = s.escenarios.map(function(esc, i) {
+    const active = i === (s.escenarioActivo || 0);
+    return '<button class="px-3 py-1 text-xs border border-b-0 rounded-t mr-0.5 '+
+      (active ? 'bg-white font-semibold text-red-700 border-gray-300' : 'bg-gray-100 text-gray-500 hover:bg-gray-200 border-gray-200')+
+      '" onclick="switchCCNScenario('+i+')">'+
+      esc.nombre +
+      (active ? ' <span class="ml-1 text-gray-400 hover:text-blue-500 cursor-pointer" onclick="event.stopPropagation();renameCCNScenario('+i+')" title="Renombrar">✏</span>' : '') +
+      (s.escenarios.length > 1
+        ? ' <span class="ml-1 text-gray-400 hover:text-red-500 cursor-pointer" onclick="event.stopPropagation();deleteCCNScenario('+i+')" title="Eliminar">×</span>'
+        : '') +
+    '</button>';
+  }).join('') +
+  '<button class="px-2 py-0.5 text-xs text-gray-400 hover:text-gray-700 border border-b-0 rounded-t bg-gray-50 border-gray-200 mr-0.5" onclick="addCCNScenario()" title="Nuevo escenario vacío">＋</button>'+
+  '<button class="px-2 py-0.5 text-xs text-blue-400 hover:text-blue-600 border border-b-0 rounded-t bg-gray-50 border-gray-200" onclick="duplicateCCNScenario()" title="Duplicar escenario actual con sus candidatos">⧉ Copiar</button>';
+}
+
+function addCCNScenario() {
+  const n = state.ccn.escenarios.length + 1;
+  state.ccn.escenarios.push({ nombre: 'Escenario ' + n, pactos: [], candidatos: [] });
+  state.ccn.escenarioActivo = state.ccn.escenarios.length - 1;
+  renderCCNScenarios(); renderCCNPactos(); renderCCNCandidatos(); saveState();
+}
+
+function deleteCCNScenario(idx) {
+  const s = state.ccn;
+  if (s.escenarios.length <= 1) return;
+  if (!confirm('¿Eliminar "' + s.escenarios[idx].nombre + '"?')) return;
+  s.escenarios.splice(idx, 1);
+  if ((s.escenarioActivo || 0) >= s.escenarios.length) s.escenarioActivo = s.escenarios.length - 1;
+  renderCCNScenarios(); renderCCNPactos(); renderCCNCandidatos(); saveState();
+}
+
+function switchCCNScenario(idx) {
+  state.ccn.escenarioActivo = idx;
+  renderCCNScenarios(); renderCCNPactos(); renderCCNCandidatos(); saveState();
+}
+
+function renameCCNScenario(idx) {
+  const n = prompt('Nuevo nombre para el escenario:', state.ccn.escenarios[idx].nombre);
+  if (n && n.trim()) { state.ccn.escenarios[idx].nombre = n.trim(); renderCCNScenarios(); saveState(); }
+}
+
+function duplicateCCNScenario() {
+  const s = state.ccn;
+  const src = s.escenarios[s.escenarioActivo || 0];
+  const copia = JSON.parse(JSON.stringify(src));
+  copia.nombre = src.nombre + ' (copia)';
+  copia.candidatos = copia.candidatos.map(function(c) { return Object.assign({}, c, { id: newId() }); });
+  s.escenarios.push(copia);
+  s.escenarioActivo = s.escenarios.length - 1;
+  renderCCNScenarios(); renderCCNPactos(); renderCCNCandidatos(); saveState();
+}
+
 // ── CCR Escenarios ────────────────────────────────────────────────────────────
 function renderCCRScenarios(regionId) {
   const el = document.getElementById('ccr-escenarios-tabs');
@@ -1500,6 +1562,7 @@ loadState();
 buildDireccionPanel();
 initJsEstimado();
 buildJsEstimadoTable();
+renderCCNScenarios();
 renderCCNPactos();
 renderCCNCandidatos();
 if(typeof LOTES!=='undefined'){
@@ -1513,12 +1576,15 @@ initCCR();
 document.getElementById('ccr-region-sel').value = state.ccrRegionActiva;
 setupAutocompleteCCN();
 setupAutocompleteCCR();
-updateCandRowStyle();
-renderCruzConfig();
-renderCandHeader('ccn-cands-header');
-renderCandHeader('ccr-cands-header');
-renderCruzAddInputs('ccn');
-renderCruzAddInputs('ccr');
+updateCandRowStyle('ccn', state.ccn.cruzNames);
+updateCandRowStyle('ccr', state.ccrCruzNames);
+updateCandRowStyle('direccion', state.direccion.cruzNames);
+renderCruzConfig('ccn-cruz-config', state.ccn.cruzNames, 'ccn');
+renderCruzConfig('ccr-cruz-config', state.ccrCruzNames, 'ccr');
+renderCandHeader('ccn-cands-header', state.ccn.cruzNames);
+renderCandHeader('ccr-cands-header', state.ccrCruzNames);
+renderCruzAddInputs('ccn', state.ccn.cruzNames);
+renderCruzAddInputs('ccr', state.ccrCruzNames);
 // Restaurar pestaña activa
 switchTab(state.tabActiva || 'ccn');
 </script>

@@ -313,29 +313,34 @@ function _clearCruzAddForm(pfx, n) {
   for(let i=0;i<n;i++){const el=document.getElementById(pfx+'-vcruz'+i);if(el)el.value='';}
 }
 
-function addCruz() {
-  const i = state.cruzNames.length;
-  state.cruzNames.push('Cruz.'+(i+1));
-  _propagateCruzChange('add', null);
-  _rebuildAfterCruzChange();
+function addCruz(tipo) {
+  const names = getCruzNames(tipo);
+  names.push('Cruz.'+(names.length+1));
+  _propagateCruzChange(tipo, 'add', null);
+  _rebuildAfterCruzChange(tipo);
 }
 
-function removeCruz(idx) {
-  if (state.cruzNames.length<=1) return;
-  if (!confirm('¿Eliminar columna "'+state.cruzNames[idx]+'"?\nSe perderán los votos asignados en esa columna.')) return;
-  state.cruzNames.splice(idx,1);
-  _propagateCruzChange('remove', idx);
-  _rebuildAfterCruzChange();
+function removeCruz(tipo, idx) {
+  const names = getCruzNames(tipo);
+  if (names.length<=1) return;
+  if (!confirm('¿Eliminar columna "'+names[idx]+'"?\nSe perderán los votos asignados en esa columna.')) return;
+  names.splice(idx,1);
+  _propagateCruzChange(tipo, 'remove', idx);
+  _rebuildAfterCruzChange(tipo);
 }
 
-function _propagateCruzChange(action, idx) {
+function _propagateCruzChange(tipo, action, idx) {
   const all=[];
-  getContext('ccn').candidatos.forEach(function(c){all.push(c);});
-  REGIONES.forEach(function(r){
-    const reg=state.ccr[r.id];
-    if(reg&&reg.escenarios) reg.escenarios.forEach(function(e){e.candidatos.forEach(function(c){all.push(c);});});
-  });
-  DIR_CARGOS.forEach(function(cargo){state.direccion[cargo.id].candidatos.forEach(function(c){all.push(c);});});
+  if (tipo==='ccn') {
+    state.ccn.escenarios.forEach(function(e){e.candidatos.forEach(function(c){all.push(c);});});
+  } else if (tipo==='ccr') {
+    REGIONES.forEach(function(r){
+      const reg=state.ccr[r.id];
+      if(reg&&reg.escenarios) reg.escenarios.forEach(function(e){e.candidatos.forEach(function(c){all.push(c);});});
+    });
+  } else {
+    DIR_CARGOS.forEach(function(cargo){state.direccion[cargo.id].candidatos.forEach(function(c){all.push(c);});});
+  }
   all.forEach(function(c){
     if(!c.cruces) c.cruces=[];
     if(action==='add') c.cruces.push(0);
@@ -1097,11 +1102,10 @@ function updateCruzHeaders() {
   DIR_CARGOS.forEach(function(cargo){ renderCandHeader('dir-cands-header-'+cargo.id); });
 }
 
-window._setCruzName = function(idx, name) {
-  state.cruzNames[idx] = name.trim() || ('Cruz.' + (idx + 1));
-  updateCandRowStyle();
-  renderCruzConfig();
-  updateCruzHeaders();
+window._setCruzName = function(tipo, idx, name) {
+  const names = getCruzNames(tipo);
+  names[idx] = name.trim() || ('Cruz.'+(idx+1));
+  _rebuildAfterCruzChange(tipo);
   saveState();
 };
 

@@ -383,7 +383,7 @@ function _rebuildAfterCruzChange() {
 // ── localStorage ──────────────────────────────────────────────────────────────
 const STORAGE_KEY = 'simulador_js_2026_v2';
 function saveState() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ccn: state.ccn, ccr: state.ccr, nextId, jsEstimado: state.jsEstimado, tabActiva: state.tabActiva, ccrRegionActiva: state.ccrRegionActiva, direccion: state.direccion, cruzNames: state.cruzNames })); } catch(e) {}
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ccn: state.ccn, ccr: state.ccr, ccrCruzNames: state.ccrCruzNames, nextId, jsEstimado: state.jsEstimado, tabActiva: state.tabActiva, ccrRegionActiva: state.ccrRegionActiva, direccion: state.direccion })); } catch(e) {}
 }
 function migrateCandidate(c) {
   if (c.votosBase === undefined) {
@@ -401,8 +401,14 @@ function loadState() {
     const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
     if (!s) return;
     if (s.ccn) {
-      s.ccn.candidatos = (s.ccn.candidatos||[]).map(migrateCandidate);
-      state.ccn = s.ccn;
+      if (s.ccn.escenarios) {
+        s.ccn.escenarios.forEach(function(e){ e.candidatos=(e.candidatos||[]).map(migrateCandidate); });
+        state.ccn = s.ccn;
+        if (!state.ccn.cruzNames) state.ccn.cruzNames = ['Cruz.1','Cruz.2','Cruz.3'];
+      } else {
+        s.ccn.candidatos = (s.ccn.candidatos||[]).map(migrateCandidate);
+        state.ccn = { escenarios: [Object.assign({ nombre: 'Escenario 1' }, s.ccn)], escenarioActivo: 0, cruzNames: ['Cruz.1','Cruz.2','Cruz.3'] };
+      }
     }
     if (s.ccr) {
       for (const rid of Object.keys(s.ccr)) {
@@ -419,12 +425,18 @@ function loadState() {
         }
       }
     }
-    if (s.cruzNames && Array.isArray(s.cruzNames)) state.cruzNames = s.cruzNames;
+    if (s.ccrCruzNames && Array.isArray(s.ccrCruzNames)) state.ccrCruzNames = s.ccrCruzNames;
+    else if (s.cruzNames && Array.isArray(s.cruzNames)) {
+      state.ccn.cruzNames = s.cruzNames.slice();
+      state.ccrCruzNames = s.cruzNames.slice();
+      state.direccion.cruzNames = s.cruzNames.slice();
+    }
     if (s.nextId) nextId = s.nextId;
     if (s.jsEstimado) state.jsEstimado = s.jsEstimado;
     if (s.tabActiva) state.tabActiva = s.tabActiva;
     if (s.ccrRegionActiva) state.ccrRegionActiva = s.ccrRegionActiva;
     if (s.direccion) {
+      if (s.direccion.cruzNames) state.direccion.cruzNames = s.direccion.cruzNames;
       if (s.direccion.pactos) state.direccion.pactos = s.direccion.pactos;
       for (const cid of ['presidente','secGeneral','vpMujer','vicepresidencia']) {
         if (s.direccion[cid]) {

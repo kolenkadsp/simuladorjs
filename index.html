@@ -337,6 +337,23 @@ function _propagateCruzChange(action, idx) {
   });
 }
 
+function filaTotales(candidatos) {
+  if (!candidatos.length) return '';
+  const sumBase = candidatos.reduce(function(s,c){return s+(parseInt(c.votosBase)||0);},0);
+  const sumCruces = state.cruzNames.map(function(_,i){
+    return candidatos.reduce(function(s,c){return s+((c.cruces&&c.cruces[i])||0);},0);
+  });
+  const sumTotal = candidatos.reduce(function(s,c){return s+totalVotos(c);},0);
+  return '<div class="cand-row border-t-2 border-gray-300 py-0.5 bg-gray-50 text-xs font-bold text-gray-600">'+
+    '<span></span><span class="uppercase tracking-wide text-gray-400">Total</span>'+
+    '<span></span><span></span><span></span>'+
+    '<span class="text-center">'+sumBase+'</span>'+
+    sumCruces.map(function(v){ return '<span class="text-center">'+v+'</span>'; }).join('')+
+    '<span class="text-center text-gray-800">'+sumTotal+'</span>'+
+    '<span></span><span></span>'+
+  '</div>';
+}
+
 function _rebuildAfterCruzChange() {
   updateCandRowStyle();
   renderCruzConfig();
@@ -686,7 +703,7 @@ function renderCCNCandidatos() {
   const lista=document.getElementById('ccn-candidatos-list');
   lista.innerHTML = ctx.candidatos.length===0
     ? '<p class="text-sm text-gray-400">Sin candidatos aún.</p>'
-    : ctx.candidatos.map(c=>filaInlineCCN(c,ctx)).join('');
+    : ctx.candidatos.map(c=>filaInlineCCN(c,ctx)).join('')+filaTotales(ctx.candidatos);
 }
 window._autoSaveCCNCandidato = function(id) {
   const ctx=getContext('ccn'), c=ctx.candidatos.find(x=>x.id===id);
@@ -794,7 +811,7 @@ function renderCCRCandidatos(regionId) {
   const ctx=getContext('ccr',regionId);
   const lista=document.getElementById('ccr-candidatos-list');
   if(!ctx.candidatos.length){lista.innerHTML='<p class="text-sm text-gray-400">Sin candidatos aún.</p>';}
-  else lista.innerHTML=ctx.candidatos.map(c=>filaInlineCCR(c,ctx,regionId)).join('');
+  else lista.innerHTML=ctx.candidatos.map(c=>filaInlineCCR(c,ctx,regionId)).join('')+filaTotales(ctx.candidatos);
   renderVotosPorLote(regionId);
 }
 window._autoSaveCCRCandidato=function(regionId,id){
@@ -1270,7 +1287,7 @@ function renderDirCandidatos(cargoId) {
   if (!lista) return;
   lista.innerHTML = ctx.candidatos.length === 0
     ? '<p class="text-sm text-gray-400">Sin candidatos aún.</p>'
-    : ctx.candidatos.map(c => filaInlineDir(c, cargoId)).join('');
+    : ctx.candidatos.map(c => filaInlineDir(c, cargoId)).join('')+filaTotales(ctx.candidatos);
 }
 
 window._autoSaveDir = function(cargoId, id) {

@@ -367,20 +367,28 @@ function _renderTotalsEl(elId, candidatos, cruzNames) {
   '</div>';
 }
 
-function _rebuildAfterCruzChange() {
-  updateCandRowStyle();
-  renderCruzConfig();
-  renderCandHeader('ccn-cands-header');
-  renderCandHeader('ccr-cands-header');
-  renderCruzAddInputs('ccn');
-  renderCruzAddInputs('ccr');
-  renderCCNCandidatos();
-  renderCCRCandidatos(state.ccrRegionActiva);
-  DIR_CARGOS.forEach(function(cargo){
-    renderCandHeader('dir-cands-header-'+cargo.id);
-    renderCruzAddInputs('dir-'+cargo.id);
-    renderDirCandidatos(cargo.id);
-  });
+function _rebuildAfterCruzChange(tipo) {
+  const cn = getCruzNames(tipo);
+  if (tipo==='ccn') {
+    updateCandRowStyle('ccn', cn);
+    renderCruzConfig('ccn-cruz-config', cn, 'ccn');
+    renderCandHeader('ccn-cands-header', cn);
+    renderCruzAddInputs('ccn', cn);
+    renderCCNCandidatos();
+  } else if (tipo==='ccr') {
+    updateCandRowStyle('ccr', cn);
+    renderCruzConfig('ccr-cruz-config', cn, 'ccr');
+    renderCandHeader('ccr-cands-header', cn);
+    renderCruzAddInputs('ccr', cn);
+    renderCCRCandidatos(state.ccrRegionActiva);
+  } else {
+    updateCandRowStyle('direccion', cn);
+    DIR_CARGOS.forEach(function(cargo){
+      renderCandHeader('dir-cands-header-'+cargo.id, cn);
+      renderCruzAddInputs('dir-'+cargo.id, cn);
+      renderDirCandidatos(cargo.id);
+    });
+  }
   saveState();
 }
 
@@ -1097,9 +1105,9 @@ function duplicateCCRScenario(regionId) {
 
 // ── Nombres de cruce ──────────────────────────────────────────────────────────
 function updateCruzHeaders() {
-  renderCandHeader('ccn-cands-header');
-  renderCandHeader('ccr-cands-header');
-  DIR_CARGOS.forEach(function(cargo){ renderCandHeader('dir-cands-header-'+cargo.id); });
+  renderCandHeader('ccn-cands-header', state.ccn.cruzNames);
+  renderCandHeader('ccr-cands-header', state.ccrCruzNames);
+  DIR_CARGOS.forEach(function(cargo){ renderCandHeader('dir-cands-header-'+cargo.id, state.direccion.cruzNames); });
 }
 
 window._setCruzName = function(tipo, idx, name) {

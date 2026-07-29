@@ -240,78 +240,77 @@ function totalVotos(c) {
 }
 
 // ── cruce dynamic helpers ─────────────────────────────────────────────────────
-function updateCandRowStyle() {
-  const n = state.cruzNames.length;
+function updateCandRowStyle(panelId, cruzNames) {
+  const n = cruzNames.length;
   const cruzCols = new Array(n).fill('58px').join(' ');
   const tpl = '18px minmax(140px,2fr) minmax(90px,1.2fr) minmax(80px,1fr) minmax(70px,1fr) 58px '+cruzCols+' 62px 80px 26px';
-  let el = document.getElementById('cand-row-grid-style');
-  if (!el) { el = document.createElement('style'); el.id='cand-row-grid-style'; document.head.appendChild(el); }
-  el.textContent = '.cand-row{grid-template-columns:'+tpl+';}';
+  const styleId = 'cand-row-grid-style-'+panelId;
+  let el = document.getElementById(styleId);
+  if (!el) { el = document.createElement('style'); el.id=styleId; document.head.appendChild(el); }
+  el.textContent = '#panel-'+panelId+' .cand-row{grid-template-columns:'+tpl+';}';
 }
 
-function renderCandHeader(id) {
+function renderCandHeader(id, cruzNames) {
   const el = document.getElementById(id);
   if (!el) return;
   el.innerHTML = '<span></span><span>Nombre</span><span>Pacto</span><span>Lote</span><span>Comunal</span>'+
     '<span>V.Base</span>'+
-    state.cruzNames.map(function(n,i){ return '<span class="cruz-col-hdr-'+i+'">'+n+'</span>'; }).join('')+
+    cruzNames.map(function(n){ return '<span>'+n+'</span>'; }).join('')+
     '<span class="font-bold text-gray-700">Total</span><span>Sexo</span><span></span>';
 }
 
-function renderCruzConfig() {
-  const el = document.getElementById('ccr-cruz-config');
+function renderCruzConfig(containerId, cruzNames, tipo) {
+  const el = document.getElementById(containerId);
   if (!el) return;
   el.innerHTML = '<span class="whitespace-nowrap text-gray-400 mr-1">Cruces:</span>'+
-    state.cruzNames.map(function(name,i){
+    cruzNames.map(function(name,i){
       return '<div class="flex items-center gap-0">'+
         '<input class="border rounded px-1 py-0.5 w-20 text-xs" value="'+name+'" '+
-          'onchange="window._setCruzName('+i+',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()">'+
-        (state.cruzNames.length>1
-          ? '<button class="text-red-400 hover:text-red-600 text-xs px-0.5 leading-none" onclick="removeCruz('+i+')" title="Eliminar columna">×</button>'
+          'onchange="window._setCruzName(\''+tipo+'\','+i+',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()">'+
+        (cruzNames.length>1
+          ? '<button class="text-red-400 hover:text-red-600 text-xs px-0.5 leading-none" onclick="removeCruz(\''+tipo+'\','+i+')" title="Eliminar columna">×</button>'
           : '')+
       '</div>';
     }).join('')+
-    '<button class="text-xs text-blue-500 hover:text-blue-700 border border-blue-300 rounded px-1.5 py-0.5 whitespace-nowrap ml-1" onclick="addCruz()">+ Cruce</button>';
+    '<button class="text-xs text-blue-500 hover:text-blue-700 border border-blue-300 rounded px-1.5 py-0.5 whitespace-nowrap ml-1" onclick="addCruz(\''+tipo+'\')">+ Cruce</button>';
 }
 
-function renderCruzAddInputs(pfx) {
+function renderCruzAddInputs(pfx, cruzNames) {
   const el = document.getElementById(pfx+'-cruz-add-inputs');
   if (!el) return;
-  el.innerHTML = state.cruzNames.map(function(name,i){
+  el.innerHTML = cruzNames.map(function(name,i){
     return '<input id="'+pfx+'-vcruz'+i+'" type="number" min="0" placeholder="'+name+'" class="border rounded px-1 py-1 text-sm w-16">';
   }).join('');
 }
 
-function _cruzInlineInputs(c, pfx, ac, enter, updateFn) {
+function _cruzInlineInputs(c, pfx, ac, enter, updateFn, cruzNames) {
   const cruces = c.cruces || [];
-  return state.cruzNames.map(function(name,i){
+  return cruzNames.map(function(name,i){
     return '<input type="number" class="inline-cell w-full text-center" id="ei-'+pfx+'-vcruz'+i+'-'+c.id+'" value="'+(cruces[i]||0)+'" onchange="'+ac+'" oninput="'+updateFn+'('+c.id+')" onkeydown="'+enter+'">';
   }).join('');
 }
 
-function _calcTotalFromInputs(pfx, id) {
+function _calcTotalFromInputs(pfx, id, n) {
   const g = function(sel){ const el=document.getElementById(sel); return el?parseInt(el.value)||0:0; };
   let tot = g('ei-'+pfx+'-vbase-'+id);
-  for (let i=0;i<state.cruzNames.length;i++) tot += g('ei-'+pfx+'-vcruz'+i+'-'+id);
+  for (let i=0;i<n;i++) tot += g('ei-'+pfx+'-vcruz'+i+'-'+id);
   return tot;
 }
 
-function _readCruces(pfx, id) {
-  return state.cruzNames.map(function(_,i){
-    const el=document.getElementById('ei-'+pfx+'-vcruz'+i+'-'+id); return parseInt(el&&el.value)||0;
-  });
+function _readCruces(pfx, id, n) {
+  const arr=[];
+  for(let i=0;i<n;i++){const el=document.getElementById('ei-'+pfx+'-vcruz'+i+'-'+id);arr.push(parseInt(el&&el.value)||0);}
+  return arr;
 }
 
-function _readCruzAddForm(pfx) {
-  return state.cruzNames.map(function(_,i){
-    const el=document.getElementById(pfx+'-vcruz'+i); return parseInt(el&&el.value)||0;
-  });
+function _readCruzAddForm(pfx, n) {
+  const arr=[];
+  for(let i=0;i<n;i++){const el=document.getElementById(pfx+'-vcruz'+i);arr.push(parseInt(el&&el.value)||0);}
+  return arr;
 }
 
-function _clearCruzAddForm(pfx) {
-  state.cruzNames.forEach(function(_,i){
-    const el=document.getElementById(pfx+'-vcruz'+i); if(el) el.value='';
-  });
+function _clearCruzAddForm(pfx, n) {
+  for(let i=0;i<n;i++){const el=document.getElementById(pfx+'-vcruz'+i);if(el)el.value='';}
 }
 
 function addCruz() {
@@ -344,12 +343,12 @@ function _propagateCruzChange(action, idx) {
   });
 }
 
-function _renderTotalsEl(elId, candidatos) {
+function _renderTotalsEl(elId, candidatos, cruzNames) {
   const el = document.getElementById(elId);
   if (!el) return;
   if (!candidatos.length) { el.innerHTML = ''; return; }
   const sumBase = candidatos.reduce(function(s,c){return s+(parseInt(c.votosBase)||0);},0);
-  const sumCruces = state.cruzNames.map(function(_,i){
+  const sumCruces = cruzNames.map(function(_,i){
     return candidatos.reduce(function(s,c){return s+((c.cruces&&c.cruces[i])||0);},0);
   });
   const sumTotal = candidatos.reduce(function(s,c){return s+totalVotos(c);},0);

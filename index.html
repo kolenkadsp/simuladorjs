@@ -904,14 +904,16 @@ function renderCCRScenarios(regionId) {
     const active = i === (reg.escenarioActivo || 0);
     return '<button class="px-3 py-1 text-xs border border-b-0 rounded-t mr-0.5 '+
       (active ? 'bg-white font-semibold text-red-700 border-gray-300' : 'bg-gray-100 text-gray-500 hover:bg-gray-200 border-gray-200')+
-      '" onclick="switchCCRScenario(\''+regionId+'\','+i+')" ondblclick="renameCCRScenario(\''+regionId+'\','+i+')" title="Doble clic para renombrar">'+
+      '" onclick="switchCCRScenario(\''+regionId+'\','+i+')">'+
       esc.nombre +
+      (active ? ' <span class="ml-1 text-gray-400 hover:text-blue-500 cursor-pointer" onclick="event.stopPropagation();renameCCRScenario(\''+regionId+'\','+i+')" title="Renombrar">✏</span>' : '') +
       (reg.escenarios.length > 1
-        ? ' <span class="ml-1 text-gray-400 hover:text-red-500" onclick="event.stopPropagation();deleteCCRScenario(\''+regionId+'\','+i+')">×</span>'
+        ? ' <span class="ml-1 text-gray-400 hover:text-red-500 cursor-pointer" onclick="event.stopPropagation();deleteCCRScenario(\''+regionId+'\','+i+')" title="Eliminar">×</span>'
         : '') +
     '</button>';
   }).join('') +
-  '<button class="px-2 py-0.5 text-xs text-gray-400 hover:text-gray-700 border border-b-0 rounded-t bg-gray-50 border-gray-200" onclick="addCCRScenario(\''+regionId+'\')" title="Nuevo escenario">＋</button>';
+  '<button class="px-2 py-0.5 text-xs text-gray-400 hover:text-gray-700 border border-b-0 rounded-t bg-gray-50 border-gray-200 mr-0.5" onclick="addCCRScenario(\''+regionId+'\')" title="Nuevo escenario vacío">＋</button>'+
+  '<button class="px-2 py-0.5 text-xs text-blue-400 hover:text-blue-600 border border-b-0 rounded-t bg-gray-50 border-gray-200" onclick="duplicateCCRScenario(\''+regionId+'\')" title="Duplicar escenario actual con sus candidatos">⧉ Copiar</button>';
 }
 
 function addCCRScenario(regionId) {
@@ -942,6 +944,17 @@ function renameCCRScenario(regionId, idx) {
   if (n && n.trim()) { reg.escenarios[idx].nombre = n.trim(); renderCCRScenarios(regionId); saveState(); }
 }
 
+function duplicateCCRScenario(regionId) {
+  const reg = state.ccr[regionId];
+  const src = reg.escenarios[reg.escenarioActivo || 0];
+  const copia = JSON.parse(JSON.stringify(src));
+  copia.nombre = src.nombre + ' (copia)';
+  copia.candidatos = copia.candidatos.map(function(c) { return Object.assign({}, c, { id: newId() }); });
+  reg.escenarios.push(copia);
+  reg.escenarioActivo = reg.escenarios.length - 1;
+  actualizarCCRRegion(regionId); saveState();
+}
+
 // ── Contador de votos por lote ────────────────────────────────────────────────
 function renderVotosPorLote(regionId) {
   const container = document.getElementById('ccr-votos-lote');
@@ -952,7 +965,8 @@ function renderVotosPorLote(regionId) {
   const estimado = state.jsEstimado[regionId] || {};
   const rows = [];
   for (const l of lotes) {
-    const est = parseInt(estimado[l]) || 0;
+    const jsEst = parseInt(estimado[l]) || 0;
+    const est = jsEst * CCR_VOTOS_ELECTOR;
     const asignado = ctx.candidatos.reduce(function(s, c) { return c.lote === l ? s + totalVotos(c) : s; }, 0);
     if (!est && !asignado) continue;
     const pend = est - asignado;
@@ -963,7 +977,8 @@ function renderVotosPorLote(regionId) {
         : '<span class="text-green-600">0 ✓</span>';
     rows.push('<tr class="hover:bg-gray-50">'+
       '<td class="border px-2 py-0.5 font-medium">' + l + '</td>'+
-      '<td class="border px-2 py-0.5 text-center">' + (est || '—') + '</td>'+
+      '<td class="border px-2 py-0.5 text-center">' + (jsEst || '—') + '</td>'+
+      '<td class="border px-2 py-0.5 text-center font-semibold">' + est + '</td>'+
       '<td class="border px-2 py-0.5 text-center font-semibold">' + asignado + '</td>'+
       '<td class="border px-2 py-0.5 text-center">' + pendStr + '</td>'+
     '</tr>');
@@ -973,12 +988,13 @@ function renderVotosPorLote(regionId) {
     '<div class="border rounded overflow-hidden">'+
     '<div class="bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-500 border-b flex justify-between">'+
       '<span>Votos por Lote</span>'+
-      '<span class="font-normal text-gray-400">Estimado (JS Estimado) vs. asignado en candidatos</span>'+
+      '<span class="font-normal text-gray-400">JS Estimado × '+CCR_VOTOS_ELECTOR+' votos = votos disponibles por lote</span>'+
     '</div>'+
     '<table class="w-full text-xs border-collapse">'+
     '<thead><tr class="bg-gray-50 text-xs text-gray-500">'+
       '<th class="border px-2 py-0.5 text-left">Lote</th>'+
-      '<th class="border px-2 py-0.5">Estimado</th>'+
+      '<th class="border px-2 py-0.5">JS Est.</th>'+
+      '<th class="border px-2 py-0.5">Votos (×'+CCR_VOTOS_ELECTOR+')</th>'+
       '<th class="border px-2 py-0.5">Asignado</th>'+
       '<th class="border px-2 py-0.5">Pendiente</th>'+
     '</tr></thead><tbody>' + rows.join('') + '</tbody></table></div>';

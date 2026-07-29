@@ -30,6 +30,9 @@
       <button id="tab-ccr" class="tab-btn px-6 py-3 font-semibold text-gray-500 hover:text-gray-700">
         Comité Central Regional <span class="text-xs font-normal">(30 cupos)</span>
       </button>
+      <button id="tab-dir" class="tab-btn px-6 py-3 font-semibold text-gray-500 hover:text-gray-700">
+        Dirección
+      </button>
     </div>
 
     <!-- JS Estimado Panel -->
@@ -172,6 +175,9 @@
         <div id="ccr-resultado-output" class="hidden"></div>
       </section>
     </div>
+
+    <!-- Dirección Panel -->
+    <div id="panel-direccion" class="hidden"></div>
   </div>
 
 <script src="js/padron.js"></script>
@@ -206,6 +212,13 @@ const state = {
   ccrRegionActiva: REGIONES[0].id,
   jsEstimado: {},
   tabActiva: 'ccn',
+  direccion: {
+    pactos: [],
+    presidente:      { candidatos: [] },
+    secGeneral:      { candidatos: [] },
+    vpMujer:         { candidatos: [] },
+    vicepresidencia: { candidatos: [] },
+  },
 };
 function getContext(tipo, regionId) {
   return tipo === 'ccn' ? state.ccn : state.ccr[regionId != null ? regionId : state.ccrRegionActiva];
@@ -221,7 +234,7 @@ function totalVotos(c) {
 // ── localStorage ──────────────────────────────────────────────────────────────
 const STORAGE_KEY = 'simulador_js_2026_v2';
 function saveState() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ccn: state.ccn, ccr: state.ccr, nextId, jsEstimado: state.jsEstimado, tabActiva: state.tabActiva, ccrRegionActiva: state.ccrRegionActiva })); } catch(e) {}
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ccn: state.ccn, ccr: state.ccr, nextId, jsEstimado: state.jsEstimado, tabActiva: state.tabActiva, ccrRegionActiva: state.ccrRegionActiva, direccion: state.direccion })); } catch(e) {}
 }
 function migrateCandidate(c) {
   if (c.votosBase === undefined) {
@@ -250,6 +263,15 @@ function loadState() {
     if (s.jsEstimado) state.jsEstimado = s.jsEstimado;
     if (s.tabActiva) state.tabActiva = s.tabActiva;
     if (s.ccrRegionActiva) state.ccrRegionActiva = s.ccrRegionActiva;
+    if (s.direccion) {
+      if (s.direccion.pactos) state.direccion.pactos = s.direccion.pactos;
+      for (const cid of ['presidente','secGeneral','vpMujer','vicepresidencia']) {
+        if (s.direccion[cid]) {
+          s.direccion[cid].candidatos = (s.direccion[cid].candidatos||[]).map(migrateCandidate);
+          state.direccion[cid] = s.direccion[cid];
+        }
+      }
+    }
   } catch(e) {}
 }
 function clearState() {
@@ -862,7 +884,7 @@ window._drop = function(e, tipo, regionId, targetId) {
   e.preventDefault();
   e.currentTarget.classList.remove('drag-over');
   if (_drag.id === targetId) return;
-  var ctx = getContext(tipo, regionId);
+  var ctx = tipo === 'dir' ? state.direccion[regionId] : getContext(tipo, regionId);
   var srcIdx = ctx.candidatos.findIndex(function(c){ return c.id === _drag.id; });
   var tgtIdx = ctx.candidatos.findIndex(function(c){ return c.id === targetId; });
   if (srcIdx === -1 || tgtIdx === -1) return;
@@ -870,15 +892,16 @@ window._drop = function(e, tipo, regionId, targetId) {
   ctx.candidatos.splice(tgtIdx, 0, item);
   saveState();
   if (tipo === 'ccn') renderCCNCandidatos();
-  else renderCCRCandidatos(regionId);
+  else if (tipo === 'ccr') renderCCRCandidatos(regionId);
+  else renderDirCandidatos(regionId);
 };
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 function switchTab(active) {
   state.tabActiva = active;
   saveState();
-  var panels = { estimado: 'panel-estimado', ccn: 'panel-ccn', ccr: 'panel-ccr' };
-  var tabs   = { estimado: 'tab-estimado',   ccn: 'tab-ccn',   ccr: 'tab-ccr'   };
+  var panels = { estimado: 'panel-estimado', ccn: 'panel-ccn', ccr: 'panel-ccr', dir: 'panel-direccion' };
+  var tabs   = { estimado: 'tab-estimado',   ccn: 'tab-ccn',   ccr: 'tab-ccr',   dir: 'tab-dir'        };
   for (var key in panels) {
     document.getElementById(panels[key]).classList.toggle('hidden', key !== active);
     var btn = document.getElementById(tabs[key]);
@@ -894,6 +917,7 @@ function switchTab(active) {
 document.getElementById('tab-estimado').addEventListener('click', function(){ switchTab('estimado'); });
 document.getElementById('tab-ccn').addEventListener('click', function(){ switchTab('ccn'); });
 document.getElementById('tab-ccr').addEventListener('click', function(){ switchTab('ccr'); });
+document.getElementById('tab-dir').addEventListener('click', function(){ switchTab('dir'); });
 
 // ── CCN wiring ────────────────────────────────────────────────────────────────
 document.getElementById('ccn-add-pacto').addEventListener('click',function(){const i=document.getElementById('ccn-new-pacto');if(addCCNPacto(i.value))i.value='';});
@@ -958,8 +982,280 @@ document.getElementById('ccr-calcular-todas').addEventListener('click',function(
   renderResumenNacionalCCR();
 });
 
+// ── Dirección ─────────────────────────────────────────────────────────────────
+const DIR_CARGOS = [
+  { id: 'presidente',      label: 'Presidente',         cupos: 1, soloMujer: false },
+  { id: 'secGeneral',      label: 'Secretario General', cupos: 1, soloMujer: false },
+  { id: 'vpMujer',         label: 'VP Mujer',           cupos: 1, soloMujer: true  },
+  { id: 'vicepresidencia', label: 'Vicepresidencia',    cupos: 4, soloMujer: false },
+];
+
+function filaInlineDir(c, cargoId) {
+  const lotes = typeof LOTES !== 'undefined' ? LOTES : [];
+  const pactoOpts = state.direccion.pactos.map(p=>'<option value="'+p+'"'+(c.pacto===p?' selected':'')+'>'+p+'</option>').join('');
+  const loteOpts  = lotes.map(l=>'<option value="'+l+'"'+(c.lote===l?' selected':'')+'>'+l+'</option>').join('');
+  const ac = 'window._autoSaveDir(\''+cargoId+'\','+c.id+')';
+  const enter = 'if(event.key===\'Enter\'){'+ac+';this.blur();}';
+  const ds='window._dragStart(event,\'dir\',\''+cargoId+'\','+c.id+')';
+  const dv='window._dragOver(event,\'dir\',\''+cargoId+'\','+c.id+')';
+  const dp='window._drop(event,\'dir\',\''+cargoId+'\','+c.id+')';
+  const de='window._dragEnd(event)';
+  return '<div class="cand-row border-b py-0.5" data-id="'+c.id+'" draggable="true" ondragstart="'+ds+'" ondragover="'+dv+'" ondrop="'+dp+'" ondragend="'+de+'">'+
+    '<span class="drag-handle" title="Arrastrar para reordenar">⠿</span>'+
+    '<input class="inline-cell w-full" id="ei-dir-nombre-'+c.id+'" value="'+c.nombre+'" onchange="'+ac+'" onkeydown="'+enter+'">'+
+    '<select class="inline-cell w-full" id="ei-dir-pacto-'+c.id+'" onchange="'+ac+'"><option value="">—</option>'+pactoOpts+'</select>'+
+    '<select class="inline-cell w-full" id="ei-dir-lote-'+c.id+'" onchange="'+ac+'"><option value="">—</option>'+loteOpts+'</select>'+
+    '<input class="inline-cell w-full" id="ei-dir-comunal-'+c.id+'" value="'+(c.comunal||'')+'" onchange="'+ac+'" onkeydown="'+enter+'">'+
+    '<input type="number" class="inline-cell w-full text-center" id="ei-dir-vbase-'+c.id+'" value="'+(c.votosBase||0)+'" onchange="'+ac+'" oninput="window._updateTotalDir('+c.id+')" onkeydown="'+enter+'">'+
+    '<input type="number" class="inline-cell w-full text-center" id="ei-dir-vcruz1-'+c.id+'" value="'+(c.vCruz1||0)+'" onchange="'+ac+'" oninput="window._updateTotalDir('+c.id+')" onkeydown="'+enter+'">'+
+    '<input type="number" class="inline-cell w-full text-center" id="ei-dir-vcruz2-'+c.id+'" value="'+(c.vCruz2||0)+'" onchange="'+ac+'" oninput="window._updateTotalDir('+c.id+')" onkeydown="'+enter+'">'+
+    '<input type="number" class="inline-cell w-full text-center" id="ei-dir-vcruz3-'+c.id+'" value="'+(c.vCruz3||0)+'" onchange="'+ac+'" oninput="window._updateTotalDir('+c.id+')" onkeydown="'+enter+'">'+
+    '<span class="text-center font-semibold text-xs px-1" id="ei-dir-total-'+c.id+'">'+totalVotos(c)+'</span>'+
+    '<select class="inline-cell w-full" id="ei-dir-sexo-'+c.id+'" onchange="'+ac+'">'+
+      '<option value="H"'+(c.sexo==='H'?' selected':'')+'>H</option>'+
+      '<option value="M"'+(c.sexo==='M'?' selected':'')+'>M</option>'+
+    '</select>'+
+    '<button class="text-red-400 hover:text-red-600 text-base leading-none" onclick="window._removeDirCandidato(\''+cargoId+'\','+c.id+')">×</button>'+
+  '</div>';
+}
+
+window._updateTotalDir = function(id) {
+  const g = sel => { const el=document.getElementById(sel); return el?parseInt(el.value)||0:0; };
+  const tot = g('ei-dir-vbase-'+id)+g('ei-dir-vcruz1-'+id)+g('ei-dir-vcruz2-'+id)+g('ei-dir-vcruz3-'+id);
+  const el = document.getElementById('ei-dir-total-'+id); if(el) el.textContent=tot;
+};
+
+function renderDirCandidatos(cargoId) {
+  const ctx = state.direccion[cargoId];
+  const lista = document.getElementById('dir-cands-'+cargoId);
+  if (!lista) return;
+  lista.innerHTML = ctx.candidatos.length === 0
+    ? '<p class="text-sm text-gray-400">Sin candidatos aún.</p>'
+    : ctx.candidatos.map(c => filaInlineDir(c, cargoId)).join('');
+}
+
+window._autoSaveDir = function(cargoId, id) {
+  const ctx = state.direccion[cargoId], c = ctx.candidatos.find(x=>x.id===id);
+  if (!c) return;
+  const g = sel => { const el=document.getElementById(sel); return el?el.value:null; };
+  const n=g('ei-dir-nombre-'+id);  if(n!==null) c.nombre=n.trim()||'(sin nombre)';
+  const p=g('ei-dir-pacto-'+id);   if(p!==null) c.pacto=p||'—';
+  const l=g('ei-dir-lote-'+id);    if(l!==null) c.lote=l;
+  const com=g('ei-dir-comunal-'+id); if(com!==null) c.comunal=com.trim().toUpperCase();
+  const vb=g('ei-dir-vbase-'+id);  if(vb!==null) c.votosBase=parseInt(vb)||0;
+  const v1=g('ei-dir-vcruz1-'+id); if(v1!==null) c.vCruz1=parseInt(v1)||0;
+  const v2=g('ei-dir-vcruz2-'+id); if(v2!==null) c.vCruz2=parseInt(v2)||0;
+  const v3=g('ei-dir-vcruz3-'+id); if(v3!==null) c.vCruz3=parseInt(v3)||0;
+  const s=g('ei-dir-sexo-'+id);    if(s!==null) c.sexo=s;
+  const totEl=document.getElementById('ei-dir-total-'+id);
+  if(totEl) totEl.textContent=totalVotos(c);
+  saveState();
+};
+
+window._removeDirCandidato = function(cargoId, id) {
+  state.direccion[cargoId].candidatos = state.direccion[cargoId].candidatos.filter(c=>c.id!==id);
+  renderDirCandidatos(cargoId); saveState();
+};
+
+function addDirCandidato(cargoId, datos) {
+  state.direccion[cargoId].candidatos.push({
+    id: newId(), nombre: datos.nombre.trim()||'(sin nombre)',
+    pacto: datos.pacto||'—', lote: datos.lote||'', comunal: (datos.comunal||'').toUpperCase(),
+    votosBase: parseInt(datos.vbase)||0, vCruz1: parseInt(datos.vcruz1)||0,
+    vCruz2: parseInt(datos.vcruz2)||0, vCruz3: parseInt(datos.vcruz3)||0,
+    sexo: datos.sexo||'H'
+  });
+  renderDirCandidatos(cargoId); saveState();
+  const out = document.getElementById('dir-resultado-output');
+  if (out) out.classList.add('hidden');
+  return true;
+}
+
+function renderDirPactos() {
+  const lista = document.getElementById('dir-pactos-list');
+  const pactos = state.direccion.pactos;
+  if (!lista) return;
+  lista.innerHTML = pactos.map(p =>
+    '<span class="inline-flex items-center gap-1 bg-gray-100 border rounded px-2 py-1 text-sm">'+p+
+    '<button class="text-red-500 hover:text-red-700 font-bold" onclick="window._removeDirPacto(\''+p+'\')"'+
+    (DIR_CARGOS.some(c=>state.direccion[c.id].candidatos.some(x=>x.pacto===p))?' disabled title="Tiene candidatos"':'')+'>×</button></span>'
+  ).join('');
+  // Update pacto selects in add forms
+  DIR_CARGOS.forEach(function(cargo) {
+    const sel = document.getElementById('dir-pacto-sel-'+cargo.id);
+    if (sel) sel.innerHTML = '<option value="">— Pacto —</option>'+
+      pactos.map(p=>'<option value="'+p+'">'+p+'</option>').join('');
+  });
+  // Update pacto selects in existing candidate rows
+  DIR_CARGOS.forEach(function(cargo) {
+    state.direccion[cargo.id].candidatos.forEach(function(c) {
+      const sel = document.getElementById('ei-dir-pacto-'+c.id);
+      if (sel) sel.innerHTML = '<option value="">—</option>'+
+        pactos.map(p=>'<option value="'+p+'"'+(c.pacto===p?' selected':'')+'>'+p+'</option>').join('');
+    });
+  });
+}
+
+function addDirPacto(n) {
+  if (!n.trim() || state.direccion.pactos.includes(n.trim())) return false;
+  state.direccion.pactos.push(n.trim()); renderDirPactos(); saveState(); return true;
+}
+
+window._removeDirPacto = function(n) {
+  if (DIR_CARGOS.some(c=>state.direccion[c.id].candidatos.some(x=>x.pacto===n))) return;
+  state.direccion.pactos = state.direccion.pactos.filter(p=>p!==n);
+  renderDirPactos(); saveState();
+};
+
+function doAddDir(cargoId) {
+  const ok = addDirCandidato(cargoId, {
+    nombre:  document.getElementById('dir-nombre-'+cargoId).value,
+    pacto:   document.getElementById('dir-pacto-sel-'+cargoId).value,
+    lote:    document.getElementById('dir-lote-sel-'+cargoId).value,
+    comunal: document.getElementById('dir-comunal-'+cargoId).value,
+    vbase:   document.getElementById('dir-vbase-'+cargoId).value,
+    vcruz1:  document.getElementById('dir-vcruz1-'+cargoId).value,
+    vcruz2:  document.getElementById('dir-vcruz2-'+cargoId).value,
+    vcruz3:  document.getElementById('dir-vcruz3-'+cargoId).value,
+    sexo:    document.getElementById('dir-sexo-'+cargoId).value,
+  });
+  if (ok) {
+    document.getElementById('dir-nombre-'+cargoId).value='';
+    document.getElementById('dir-vbase-'+cargoId).value='';
+    document.getElementById('dir-vcruz1-'+cargoId).value='';
+    document.getElementById('dir-vcruz2-'+cargoId).value='';
+    document.getElementById('dir-vcruz3-'+cargoId).value='';
+    document.getElementById('dir-comunal-'+cargoId).value='';
+  }
+}
+
+function calcularDireccion() {
+  const output = document.getElementById('dir-resultado-output');
+  output.innerHTML = ''; output.classList.remove('hidden');
+  const allPactos = state.direccion.pactos;
+
+  for (const cargo of DIR_CARGOS) {
+    const sec = document.createElement('div');
+    sec.className = 'mb-6 border rounded p-4 bg-white';
+    sec.innerHTML = '<h3 class="font-bold text-base mb-3">'+cargo.label+
+      ' <span class="text-xs font-normal text-gray-400">('+cargo.cupos+' cupo'+(cargo.cupos>1?'s':'')+')</span></h3>';
+
+    const candidatos = state.direccion[cargo.id].candidatos.map(c=>({...c, votos: totalVotos(c)}));
+    const pool = cargo.soloMujer ? candidatos.filter(c=>c.sexo==='M') : candidatos;
+
+    if (!pool.length) {
+      sec.appendChild(renderBanner('Sin candidatos'+(cargo.soloMujer?' (mujeres)':'')+' en esta sección.', 'warn'));
+      output.appendChild(sec); continue;
+    }
+
+    if (cargo.id === 'vicepresidencia') {
+      if (!allPactos.length) { sec.appendChild(renderBanner('Ingresa al menos un pacto para calcular Vicepresidencia.', 'err')); output.appendChild(sec); continue; }
+      const dhondt = runDhondt(pool, allPactos, cargo.cupos);
+      if (dhondt.listaUnica) sec.appendChild(renderBanner('Lista única — conteo directo (art. 74)', 'warn'));
+      dhondt.advertencias.forEach(function(a) {
+        if (a.tipo==='sorteo_dhondt') sec.appendChild(renderBanner('⚠ Sorteo cupo N°'+a.cupo+' → '+a.pactoGanador, 'warn'));
+        if (a.tipo==='sorteo_individual') sec.appendChild(renderBanner('⚠ Empate individual pacto '+a.pacto+' ('+a.votos+' votos)', 'warn'));
+      });
+      if (!dhondt.listaUnica) sec.appendChild(renderDhondtTable(dhondt, allPactos, cargo.cupos));
+      const par = aplicarParidadCCN(dhondt.electos, dhondt.noElectos);
+      if (par.imposible) sec.appendChild(renderBanner('⚠ No es posible alcanzar la paridad con los candidatos disponibles.', 'err'));
+      else if (par.corregido) sec.appendChild(renderBanner('Se aplicó corrección de paridad', 'warn'));
+      sec.appendChild(renderElectos(par.electos, false));
+      sec.appendChild(renderIndicadorParidad(par.electos, cargo.cupos));
+    } else {
+      if (cargo.soloMujer && candidatos.some(c=>c.sexo!=='M')) {
+        sec.appendChild(renderBanner('⚠ Se excluyen candidatos hombres (cargo reservado para mujeres).', 'warn'));
+      }
+      const sorted = [...pool].sort((a,b)=>b.votos-a.votos);
+      const electo = {...sorted[0], estado: 'electo'};
+      sec.appendChild(renderElectos([electo], false));
+    }
+    output.appendChild(sec);
+  }
+}
+
+function buildDireccionPanel() {
+  const lotes = typeof LOTES !== 'undefined' ? LOTES : [];
+  const panel = document.getElementById('panel-direccion');
+  if (!panel) return;
+
+  const loteOptStr = '<option value="">— Lote —</option>'+lotes.map(l=>'<option value="'+l+'">'+l+'</option>').join('');
+
+  panel.innerHTML =
+    '<section class="mb-6 bg-white rounded-lg shadow p-4">'+
+      '<h2 class="font-bold text-lg mb-3">Pactos / Listas</h2>'+
+      '<div id="dir-pactos-list" class="flex flex-wrap gap-2 mb-3"></div>'+
+      '<div class="flex gap-2">'+
+        '<input id="dir-new-pacto" type="text" placeholder="Nombre del pacto" class="border rounded px-3 py-1 text-sm flex-1">'+
+        '<button id="dir-add-pacto" class="bg-red-600 text-white px-4 py-1 rounded text-sm hover:bg-red-700">+ Agregar Pacto</button>'+
+      '</div>'+
+    '</section>'+
+    DIR_CARGOS.map(function(cargo) {
+      const defaultSexo = cargo.soloMujer
+        ? '<option value="H" disabled>Hombre</option><option value="M" selected>Mujer</option>'
+        : '<option value="H">Hombre</option><option value="M">Mujer</option>';
+      return '<section class="mb-6 bg-white rounded-lg shadow p-4">'+
+        '<h2 class="font-bold text-lg mb-1">'+cargo.label+
+          ' <span class="text-xs font-normal text-gray-400">('+cargo.cupos+' cupo'+(cargo.cupos>1?'s':'')+(cargo.soloMujer?' — solo mujeres':'')+' )</span></h2>'+
+        '<div class="overflow-x-auto">'+
+          '<div class="cand-row mb-2 text-xs font-semibold text-gray-500 uppercase">'+
+            '<span></span><span>Nombre</span><span>Pacto</span><span>Lote</span><span>Comunal</span>'+
+            '<span>V.Base</span><span>Cruz.1</span><span>Cruz.2</span><span>Cruz.3</span><span class="font-bold text-gray-700">Total</span>'+
+            '<span>Sexo</span><span></span>'+
+          '</div>'+
+          '<div id="dir-cands-'+cargo.id+'" class="space-y-0.5 mb-3"></div>'+
+        '</div>'+
+        '<div class="relative mb-2">'+
+          '<input id="dir-nombre-'+cargo.id+'" type="text" placeholder="Buscar en padrón o escribir nombre..." autocomplete="off" class="border rounded px-2 py-1 text-sm w-full">'+
+          '<div id="dir-ac-drop-'+cargo.id+'" class="hidden absolute left-0 right-0 bg-white border rounded shadow-lg z-20 max-h-48 overflow-y-auto text-sm"></div>'+
+        '</div>'+
+        '<div class="flex gap-1 flex-wrap items-center">'+
+          '<select id="dir-pacto-sel-'+cargo.id+'" class="border rounded px-1 py-1 text-sm w-32"><option value="">— Pacto —</option></select>'+
+          '<select id="dir-lote-sel-'+cargo.id+'" class="border rounded px-1 py-1 text-sm w-32">'+loteOptStr+'</select>'+
+          '<input id="dir-comunal-'+cargo.id+'" type="text" placeholder="Comunal" class="border rounded px-1 py-1 text-sm w-24">'+
+          '<input id="dir-vbase-'+cargo.id+'"  type="number" min="0" placeholder="V.Base"  class="border rounded px-1 py-1 text-sm w-16">'+
+          '<input id="dir-vcruz1-'+cargo.id+'" type="number" min="0" placeholder="Cruz.1"  class="border rounded px-1 py-1 text-sm w-16">'+
+          '<input id="dir-vcruz2-'+cargo.id+'" type="number" min="0" placeholder="Cruz.2"  class="border rounded px-1 py-1 text-sm w-16">'+
+          '<input id="dir-vcruz3-'+cargo.id+'" type="number" min="0" placeholder="Cruz.3"  class="border rounded px-1 py-1 text-sm w-16">'+
+          '<select id="dir-sexo-'+cargo.id+'" class="border rounded px-1 py-1 text-sm w-24">'+defaultSexo+'</select>'+
+          '<button id="dir-add-cand-'+cargo.id+'" class="bg-gray-700 text-white px-3 py-1 rounded text-sm hover:bg-gray-800 whitespace-nowrap">+ Agregar (Enter)</button>'+
+        '</div>'+
+      '</section>';
+    }).join('')+
+    '<section class="mb-6">'+
+      '<div class="flex gap-3 mb-4 flex-wrap">'+
+        '<button id="dir-calcular" class="bg-red-700 text-white px-5 py-2 rounded font-semibold hover:bg-red-800">Calcular</button>'+
+      '</div>'+
+      '<div id="dir-resultado-output" class="hidden"></div>'+
+    '</section>';
+
+  // Wire up pactos
+  document.getElementById('dir-add-pacto').addEventListener('click', function() {
+    const i = document.getElementById('dir-new-pacto'); if (addDirPacto(i.value)) i.value='';
+  });
+  document.getElementById('dir-new-pacto').addEventListener('keydown', function(e) {
+    if (e.key==='Enter') document.getElementById('dir-add-pacto').click();
+  });
+  document.getElementById('dir-calcular').addEventListener('click', calcularDireccion);
+
+  // Wire up per-cargo forms and autocomplete
+  DIR_CARGOS.forEach(function(cargo) {
+    const cid = cargo.id;
+    document.getElementById('dir-add-cand-'+cid).addEventListener('click', function(){ doAddDir(cid); });
+    document.getElementById('dir-nombre-'+cid).addEventListener('keydown', function(e){ if(e.key==='Enter') doAddDir(cid); });
+    setupAC('dir-nombre-'+cid, 'dir-ac-drop-'+cid, null, function(p) {
+      document.getElementById('dir-comunal-'+cid).value = p.comunal;
+      document.getElementById('dir-sexo-'+cid).value    = p.sexo;
+    });
+  });
+
+  renderDirPactos();
+  DIR_CARGOS.forEach(function(cargo){ renderDirCandidatos(cargo.id); });
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 loadState();
+buildDireccionPanel();
 initJsEstimado();
 buildJsEstimadoTable();
 renderCCNPactos();

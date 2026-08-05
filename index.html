@@ -893,11 +893,13 @@ function calcularCCN() {
   });
   if(!dhondt.listaUnica) output.appendChild(renderDhondtTable(dhondt,ctx.pactos,CCN_CUPOS));
 
-  const par=aplicarParidadPorPacto(dhondt.electos,dhondt.noElectos,dhondt.cuposPorPacto);
-  if(par.imposible) output.appendChild(renderBanner('⚠ No es posible alcanzar la paridad en alguna lista con los candidatos disponibles.','err'));
-  else if(par.corregido) output.appendChild(renderBanner('Se aplicó corrección de paridad por lista (art. 76–77a)','warn'));
-  output.appendChild(renderElectos(par.electos,false));
-  output.appendChild(renderIndicadorParidad(par.electos,CCN_CUPOS));
+  // Art. 76: la paridad del 40% se verifica sobre los 41 miembros totales del CC
+  // (11 nacionales + 30 regionales). Solo si ese total falla el piso de 16 por género
+  // se aplica corrección, y solo entonces se revisa si los 11 nacionales tienen ≥5 de cada sexo.
+  // El simulador no dispone de los datos CCR consolidados, por lo que no aplica corrección automática.
+  output.appendChild(renderBanner('Paridad (art. 76): se verifica sobre los 41 miembros totales del CC. Si el total de CCN+CCR tiene ≥16 de cada género, no procede corrección en CCN.','info'));
+  output.appendChild(renderElectos(dhondt.electos,false));
+  output.appendChild(renderIndicadorParidad(dhondt.electos,CCN_CUPOS));
 }
 
 // ── CCR candidatos ────────────────────────────────────────────────────────────

@@ -13,6 +13,7 @@
 .banner-warn { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 6px; padding: 8px 12px; font-size: 0.875rem; color: #92400e; margin-bottom: 12px; }
 .banner-ok   { background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px; padding: 8px 12px; font-size: 0.875rem; color: #166534; margin-bottom: 12px; }
 .banner-err  { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px; padding: 8px 12px; font-size: 0.875rem; color: #991b1b; margin-bottom: 12px; }
+.banner-info { background: #eff6ff; border: 1px solid #93c5fd; border-radius: 6px; padding: 8px 12px; font-size: 0.875rem; color: #1e40af; margin-bottom: 12px; }
 
 /* Input inline en filas de candidatos — sin borde hasta el foco */
 .inline-cell {

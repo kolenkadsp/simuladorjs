@@ -586,7 +586,7 @@ function aplicarParidadCCN(electos, noElectos) {
     if(nH>=min&&nM>=min) break;
     const sub=nH<nM?'H':'M', sobre=sub==='H'?'M':'H';
     const pactos=[...new Set(ea.map(c=>c.pacto))];
-    const defs=pactos.map(p=>{const d=ea.filter(c=>c.pacto===p);return{pacto:p,deficit:Math.max(0,Math.ceil(d.length*0.4)-d.filter(c=>c.sexo===sub).length)};}).sort((a,b)=>b.deficit-a.deficit);
+    const defs=pactos.map(p=>{const d=ea.filter(c=>c.pacto===p);const nSub=d.filter(c=>c.sexo===sub).length;return{pacto:p,deficit:Math.max(0,Math.ceil(d.length*0.4)-nSub),pctSub:d.length?nSub/d.length:1};}).filter(x=>x.deficit>0).sort((a,b)=>b.deficit-a.deficit||a.pctSub-b.pctSub);
     let ok=false;
     for(const {pacto} of defs){
       const sal=ea.filter(c=>c.pacto===pacto&&c.sexo===sobre).sort((a,b)=>a.votos-b.votos);
@@ -893,13 +893,11 @@ function calcularCCN() {
   });
   if(!dhondt.listaUnica) output.appendChild(renderDhondtTable(dhondt,ctx.pactos,CCN_CUPOS));
 
-  // Art. 76: la paridad del 40% se verifica sobre los 41 miembros totales del CC
-  // (11 nacionales + 30 regionales). Solo si ese total falla el piso de 16 por género
-  // se aplica corrección, y solo entonces se revisa si los 11 nacionales tienen ≥5 de cada sexo.
-  // El simulador no dispone de los datos CCR consolidados, por lo que no aplica corrección automática.
-  output.appendChild(renderBanner('Paridad (art. 76): se verifica sobre los 41 miembros totales del CC. Si el total de CCN+CCR tiene ≥16 de cada género, no procede corrección en CCN.','info'));
-  output.appendChild(renderElectos(dhondt.electos,false));
-  output.appendChild(renderIndicadorParidad(dhondt.electos,CCN_CUPOS));
+  const par=aplicarParidadCCN(dhondt.electos,dhondt.noElectos);
+  if(par.imposible) output.appendChild(renderBanner('⚠ No es posible alcanzar la paridad (art. 35°) con los candidatos disponibles.','err'));
+  else if(par.corregido) output.appendChild(renderBanner('Se aplicó corrección de paridad (art. 35°): mín. 5 de cada género entre los 11 CCN.','warn'));
+  output.appendChild(renderElectos(par.electos,false));
+  output.appendChild(renderIndicadorParidad(par.electos,CCN_CUPOS));
 }
 
 // ── CCR candidatos ────────────────────────────────────────────────────────────

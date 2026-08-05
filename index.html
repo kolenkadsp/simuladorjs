@@ -22,6 +22,9 @@
         ⬆ Cargar
       </button>
       <input id="upload-input" type="file" accept=".json" class="hidden" onchange="uploadData(event)">
+      <button onclick="clearVotos()" class="bg-red-800 hover:bg-red-900 text-white text-sm px-3 py-1 rounded opacity-80 hover:opacity-100">
+        🧹 Limpiar votos
+      </button>
       <button onclick="clearState()" class="bg-red-900 hover:bg-red-950 text-white text-sm px-3 py-1 rounded opacity-80 hover:opacity-100">
         🗑 Borrar datos
       </button>
@@ -471,6 +474,22 @@ function loadState() {
       }
     }
   } catch(e) {}
+}
+function clearVotos() {
+  if (!confirm('¿Poner en 0 todos los votos? Se mantienen nombres, pactos y demás datos.')) return;
+  function resetCands(cands) {
+    cands.forEach(function(c) { c.votosBase = 0; c.cruces = c.cruces.map(function(){ return 0; }); });
+  }
+  state.ccn.escenarios.forEach(function(e) { resetCands(e.candidatos); });
+  REGIONES.forEach(function(r) {
+    const reg = state.ccr[r.id];
+    if (reg && reg.escenarios) reg.escenarios.forEach(function(e) { resetCands(e.candidatos); });
+  });
+  DIR_CARGOS.forEach(function(cargo) { resetCands(state.direccion[cargo.id].candidatos); });
+  saveState();
+  renderCCNCandidatos();
+  renderCCRCandidatos(state.ccrRegionActiva);
+  DIR_CARGOS.forEach(function(cargo) { renderDirCandidatos(cargo.id); });
 }
 function clearState() {
   if (!confirm('¿Borrar todos los datos ingresados?')) return;

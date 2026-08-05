@@ -602,6 +602,34 @@ function aplicarParidadCCN(electos, noElectos) {
   return {electos:ea,noElectos:na,corregido,imposible:false,advertencias:[]};
 }
 
+function aplicarParidadPorPacto(electos, noElectos, cuposPorPacto) {
+  let ea = electos.map(c=>({...c})), na = noElectos.map(c=>({...c}));
+  let corregido = false, imposible = false;
+  for (const pacto of Object.keys(cuposPorPacto)) {
+    const N = cuposPorPacto[pacto] || 0;
+    if (N === 0) continue;
+    const min = Math.ceil(N * 0.4);
+    if (min * 2 > N) continue; // matemáticamente imposible para este pacto
+    for (let iter = 0; iter < N * 2; iter++) {
+      const enLista = ea.filter(c => c.pacto === pacto);
+      const nH = enLista.filter(c => c.sexo === 'H').length;
+      const nM = enLista.filter(c => c.sexo === 'M').length;
+      if (nH >= min && nM >= min) break;
+      const sub = nH < nM ? 'H' : 'M', sobre = sub === 'H' ? 'M' : 'H';
+      const sal = enLista.filter(c => c.sexo === sobre).sort((a,b) => a.votos - b.votos);
+      const ent = na.filter(c => c.pacto === pacto && c.sexo === sub).sort((a,b) => b.votos - a.votos);
+      if (sal.length && ent.length) {
+        ea = ea.filter(c => c.id !== sal[0].id);
+        na = na.filter(c => c.id !== ent[0].id);
+        ea.push({...ent[0], estado: 'paridad'});
+        na.push({...sal[0], estado: 'no_electo'});
+        corregido = true;
+      } else { imposible = true; break; }
+    }
+  }
+  return {electos: ea, noElectos: na, corregido, imposible};
+}
+
 function aplicarParidadCCR(electos, noElectos, padron, cupos) {
   const min=Math.ceil(cupos*0.4);
   const coef=arr=>arr.map(c=>({...c,coeficiente:c.votos/padron}));
@@ -865,9 +893,9 @@ function calcularCCN() {
   });
   if(!dhondt.listaUnica) output.appendChild(renderDhondtTable(dhondt,ctx.pactos,CCN_CUPOS));
 
-  const par=aplicarParidadCCN(dhondt.electos,dhondt.noElectos);
-  if(par.imposible) output.appendChild(renderBanner('⚠ No es posible alcanzar la paridad con los candidatos disponibles.','err'));
-  else if(par.corregido) output.appendChild(renderBanner('Se aplicó corrección de paridad (art. 76–77a)','warn'));
+  const par=aplicarParidadPorPacto(dhondt.electos,dhondt.noElectos,dhondt.cuposPorPacto);
+  if(par.imposible) output.appendChild(renderBanner('⚠ No es posible alcanzar la paridad en alguna lista con los candidatos disponibles.','err'));
+  else if(par.corregido) output.appendChild(renderBanner('Se aplicó corrección de paridad por lista (art. 76–77a)','warn'));
   output.appendChild(renderElectos(par.electos,false));
   output.appendChild(renderIndicadorParidad(par.electos,CCN_CUPOS));
 }
